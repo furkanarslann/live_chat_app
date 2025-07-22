@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../application/theme/theme_cubit.dart';
-import '../../core/app_theme.dart';
-import '../../core/build_context_translate_ext.dart';
+import 'package:live_chat_app/application/language/language_cubit.dart';
+import 'package:live_chat_app/presentation/core/app_theme.dart';
+import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
 
-class ThemeSettingsPage extends StatelessWidget {
-  const ThemeSettingsPage({super.key});
+class LanguageSettingsPage extends StatelessWidget {
+  const LanguageSettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class ThemeSettingsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr.theme),
+        title: Text(context.tr.language),
         flexibleSpace: ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -32,7 +32,7 @@ class ThemeSettingsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.tr.appearance,
+                    context.tr.language,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -40,37 +40,16 @@ class ThemeSettingsPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: AppTheme.spacing['md']),
-                  _buildThemeOption(
+                  _buildLanguageOption(
                     context: context,
-                    title: context.tr.light,
-                    icon: Icons.light_mode_outlined,
-                    isSelected: context.select(
-                      (ThemeCubit cubit) => cubit.state == ThemeMode.light,
-                    ),
-                    onTap: () =>
-                        context.read<ThemeCubit>().setTheme(ThemeMode.light),
+                    title: 'English',
+                    languageCode: 'en',
                   ),
                   SizedBox(height: AppTheme.spacing['sm']),
-                  _buildThemeOption(
+                  _buildLanguageOption(
                     context: context,
-                    title: context.tr.dark,
-                    icon: Icons.dark_mode_outlined,
-                    isSelected: context.select(
-                      (ThemeCubit cubit) => cubit.state == ThemeMode.dark,
-                    ),
-                    onTap: () =>
-                        context.read<ThemeCubit>().setTheme(ThemeMode.dark),
-                  ),
-                  SizedBox(height: AppTheme.spacing['sm']),
-                  _buildThemeOption(
-                    context: context,
-                    title: context.tr.system,
-                    icon: Icons.settings_suggest_outlined,
-                    isSelected: context.select(
-                      (ThemeCubit cubit) => cubit.state == ThemeMode.system,
-                    ),
-                    onTap: () =>
-                        context.read<ThemeCubit>().setTheme(ThemeMode.system),
+                    title: 'Deutsch',
+                    languageCode: 'de',
                   ),
                 ],
               ),
@@ -81,31 +60,32 @@ class ThemeSettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeOption({
+  Widget _buildLanguageOption({
     required BuildContext context,
     required String title,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
+    required String languageCode,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isSelected = context.select(
+      (LanguageCubit cubit) => cubit.state.languageCode == languageCode,
+    );
 
     return InkWell(
-      onTap: onTap,
+      onTap: () => context.read<LanguageCubit>().setLanguage(languageCode),
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.all(AppTheme.spacing['md']!),
         decoration: BoxDecoration(
           color: isSelected
-              ? colorScheme.primary.withOpacity(0.1)
+              ? colorScheme.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? colorScheme.primary
-                : theme.dividerColor.withOpacity(0.2),
+                : theme.dividerColor.withValues(alpha: 0.2),
             width: 1.5,
           ),
         ),
@@ -115,14 +95,17 @@ class ThemeSettingsPage extends StatelessWidget {
               padding: EdgeInsets.all(AppTheme.spacing['sm']!),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? colorScheme.primary.withOpacity(0.1)
-                    : theme.cardColor.withOpacity(0.5),
+                    ? colorScheme.primary.withValues(alpha: 0.1)
+                    : theme.cardColor.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-                size: 24,
+              child: Text(
+                languageCode.toUpperCase(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color:
+                      isSelected ? colorScheme.primary : colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             SizedBox(width: AppTheme.spacing['md']),

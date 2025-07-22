@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../chat/chat_list_page.dart';
 import '../settings/settings_page.dart';
+import '../../core/build_context_translate_ext.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -79,16 +80,16 @@ class _HomePageState extends State<HomePage> {
                       showSelectedLabels: true,
                       showUnselectedLabels: true,
                       elevation: 0,
-                      items: const [
+                      items: [
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.chat_outlined),
-                          activeIcon: Icon(Icons.chat),
-                          label: 'Chats',
+                          icon: const Icon(Icons.chat_outlined),
+                          activeIcon: const Icon(Icons.chat),
+                          label: context.tr.chats,
                         ),
                         BottomNavigationBarItem(
-                          icon: Icon(Icons.settings_outlined),
-                          activeIcon: Icon(Icons.settings),
-                          label: 'Settings',
+                          icon: const Icon(Icons.settings_outlined),
+                          activeIcon: const Icon(Icons.settings),
+                          label: context.tr.settings,
                         ),
                       ],
                     ),

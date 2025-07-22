@@ -4,6 +4,7 @@ import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../../domain/models/chat_message.dart';
+import '../../core/build_context_translate_ext.dart';
 
 class ChatPage extends StatefulWidget {
   final ChatConversation conversation;
@@ -45,7 +46,8 @@ class _ChatPageState extends State<ChatPage> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: NetworkImage(widget.conversation.participantAvatar),
+              backgroundImage:
+                  NetworkImage(widget.conversation.participantAvatar),
             ),
             const SizedBox(width: 12),
             Column(
@@ -57,7 +59,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 if (widget.conversation.isOnline)
                   Text(
-                    'Online',
+                    context.tr.online,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.green,
                         ),
@@ -92,7 +94,7 @@ class _ChatPageState extends State<ChatPage> {
                   (failureOrMessages) => failureOrMessages.fold(
                     (failure) => Center(
                       child: Text(
-                        'Error: ${failure.message}',
+                        context.tr.errorOccured,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(context).colorScheme.error,
                             ),
@@ -101,7 +103,7 @@ class _ChatPageState extends State<ChatPage> {
                     (messages) => messages.isEmpty
                         ? Center(
                             child: Text(
-                              'No messages yet',
+                              context.tr.noMessages,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           )
@@ -161,8 +163,8 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                decoration: const InputDecoration(
-                  hintText: 'Type a message...',
+                decoration: InputDecoration(
+                  hintText: context.tr.typeMessage,
                   border: InputBorder.none,
                 ),
                 textCapitalization: TextCapitalization.sentences,
@@ -224,7 +226,8 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe && showAvatar) ...[
@@ -247,10 +250,8 @@ class _MessageBubble extends StatelessWidget {
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
-                  bottomLeft:
-                      Radius.circular(isMe || !showAvatar ? 20 : 5),
-                  bottomRight:
-                      Radius.circular(!isMe || !showAvatar ? 20 : 5),
+                  bottomLeft: Radius.circular(isMe || !showAvatar ? 20 : 5),
+                  bottomRight: Radius.circular(!isMe || !showAvatar ? 20 : 5),
                 ),
               ),
               child: Column(
@@ -260,9 +261,8 @@ class _MessageBubble extends StatelessWidget {
                   Text(
                     message.content,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: isMe
-                          ? colorScheme.onPrimary
-                          : colorScheme.onSurface,
+                      color:
+                          isMe ? colorScheme.onPrimary : colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -281,9 +281,7 @@ class _MessageBubble extends StatelessWidget {
                       if (isMe) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          message.isRead
-                              ? Icons.done_all
-                              : Icons.done,
+                          message.isRead ? Icons.done_all : Icons.done,
                           size: 14,
                           color: message.isRead
                               ? Colors.blue
@@ -319,4 +317,4 @@ class _MessageBubble extends StatelessWidget {
   String _formatTimestamp(DateTime timestamp) {
     return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
   }
-} 
+}

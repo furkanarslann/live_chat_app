@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../application/theme/theme_cubit.dart';
-import '../../core/app_theme.dart';
-import 'theme_settings_page.dart';
+import 'package:live_chat_app/application/language/language_cubit.dart';
+import 'package:live_chat_app/application/theme/theme_cubit.dart';
+import 'package:live_chat_app/presentation/core/app_theme.dart';
+import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/pages/settings/language_settings_page.dart';
+import 'package:live_chat_app/presentation/pages/settings/theme_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -36,7 +39,7 @@ class _AppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text('Settings'),
+      title: Text(context.tr.settings),
       flexibleSpace: ClipRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -84,14 +87,14 @@ class _ProfileSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your Name',
+                  context.tr.yourName,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: AppTheme.spacing['xs']),
                 Text(
-                  'Available',
+                  context.tr.available,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppTheme.statusColors['online'],
                     fontWeight: FontWeight.w500,
@@ -105,7 +108,7 @@ class _ProfileSection extends StatelessWidget {
             onPressed: () {
               //TODO(Furkan): Implement QR code
             },
-            tooltip: 'Show QR code',
+            tooltip: context.tr.showQrCode,
           ),
         ],
       ),
@@ -119,12 +122,12 @@ class _AccountSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return _SettingsSection(
-      title: 'Account',
+      title: context.tr.account,
       items: [
         _SettingsItem(
           icon: Icons.key,
           iconColor: colorScheme.primary,
-          title: 'Privacy',
+          title: context.tr.privacy,
           onTap: () {
             //TODO(Furkan): Implement privacy settings
           },
@@ -132,7 +135,7 @@ class _AccountSection extends StatelessWidget {
         _SettingsItem(
           icon: Icons.chat_bubble_outline,
           iconColor: colorScheme.primary,
-          title: 'Chats',
+          title: context.tr.chatSettings,
           onTap: () {
             //TODO(Furkan): Implement chat settings
           },
@@ -140,7 +143,7 @@ class _AccountSection extends StatelessWidget {
         _SettingsItem(
           icon: Icons.notifications_none,
           iconColor: colorScheme.primary,
-          title: 'Notifications',
+          title: context.tr.notifications,
           onTap: () {
             //TODO(Furkan): Implement notification settings
           },
@@ -156,15 +159,24 @@ class _AppSettingsSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return _SettingsSection(
-      title: 'App Settings',
+      title: context.tr.appSettings,
       items: [
-        _SettingsItem(
-          icon: Icons.language,
-          iconColor: colorScheme.primary,
-          title: 'Language',
-          subtitle: 'English',
-          onTap: () {
-            //TODO(Furkan): Implement language settings
+        BlocBuilder<LanguageCubit, Locale>(
+          builder: (context, state) {
+            return _SettingsItem(
+              icon: Icons.language,
+              iconColor: colorScheme.primary,
+              title: context.tr.language,
+              subtitle: context.read<LanguageCubit>().getCurrentLanguageName(),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LanguageSettingsPage(),
+                  ),
+                );
+              },
+            );
           },
         ),
         _ThemeSettingsItem(),
@@ -174,14 +186,14 @@ class _AppSettingsSection extends StatelessWidget {
 }
 
 class _ThemeSettingsItem extends StatelessWidget {
-  String _getThemeModeName(ThemeMode mode) {
+  String _getThemeModeName(BuildContext context, ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
-        return 'Light';
+        return context.tr.light;
       case ThemeMode.dark:
-        return 'Dark';
+        return context.tr.dark;
       case ThemeMode.system:
-        return 'System';
+        return context.tr.system;
     }
   }
 
@@ -194,8 +206,8 @@ class _ThemeSettingsItem extends StatelessWidget {
         return _SettingsItem(
           icon: state == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
           iconColor: colorScheme.primary,
-          title: 'Theme',
-          subtitle: _getThemeModeName(state),
+          title: context.tr.theme,
+          subtitle: _getThemeModeName(context, state),
           onTap: () {
             Navigator.push(
               context,
@@ -216,12 +228,12 @@ class _HelpSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return _SettingsSection(
-      title: 'Help',
+      title: context.tr.help,
       items: [
         _SettingsItem(
           icon: Icons.help_outline,
           iconColor: colorScheme.primary,
-          title: 'Help Center',
+          title: context.tr.helpCenter,
           onTap: () {
             //TODO(Furkan): Implement help center
           },
@@ -229,7 +241,7 @@ class _HelpSection extends StatelessWidget {
         _SettingsItem(
           icon: Icons.info_outline,
           iconColor: colorScheme.primary,
-          title: 'About',
+          title: context.tr.about,
           onTap: () {
             //TODO(Furkan): Implement about page
           },

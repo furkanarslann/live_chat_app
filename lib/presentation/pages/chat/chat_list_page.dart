@@ -1,10 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../core/app_theme.dart';
+
 import 'chat_page.dart';
 
 class ChatListPage extends StatelessWidget {
@@ -18,9 +20,9 @@ class ChatListPage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
-              'Chats',
-              style: TextStyle(
+            title: Text(
+              context.tr.chats,
+              style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
@@ -33,21 +35,9 @@ class ChatListPage extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.camera_alt_outlined),
-                iconSize: 26,
-                tooltip: 'Take a photo',
-                constraints: const BoxConstraints(
-                  minWidth: 48,
-                  minHeight: 48,
-                ),
-                onPressed: () {
-                  //TODO(Furkan): Implement camera
-                },
-              ),
-              IconButton(
                 icon: const Icon(Icons.add_circle_outline),
                 iconSize: 26,
-                tooltip: 'New chat',
+                tooltip: context.tr.newChat,
                 constraints: const BoxConstraints(
                   minWidth: 48,
                   minHeight: 48,
@@ -61,7 +51,7 @@ class ChatListPage extends StatelessWidget {
           ),
           body: Column(
             children: [
-              _buildFilterChips(),
+              _buildFilterChips(context),
               Expanded(
                 child: BlocBuilder<ChatCubit, ChatState>(
                   builder: (context, state) {
@@ -72,7 +62,7 @@ class ChatListPage extends StatelessWidget {
                       (failureOrConversations) => failureOrConversations.fold(
                         (failure) => Center(
                           child: Text(
-                            'Error: ${failure.message}',
+                            context.tr.errorOccured,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyLarge
@@ -139,7 +129,7 @@ class ChatListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(BuildContext context) {
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -160,25 +150,25 @@ class ChatListPage extends StatelessWidget {
             child: Row(
               children: [
                 _FilterChip(
-                  label: 'All',
+                  label: context.tr.all,
                   isSelected: true,
                   onTap: () {},
                 ),
                 SizedBox(width: AppTheme.spacing['sm']),
                 _FilterChip(
-                  label: 'Unread',
+                  label: context.tr.unread,
                   isSelected: false,
                   onTap: () {},
                 ),
                 SizedBox(width: AppTheme.spacing['sm']),
                 _FilterChip(
-                  label: 'Favourites',
+                  label: context.tr.favorites,
                   isSelected: false,
                   onTap: () {},
                 ),
                 SizedBox(width: AppTheme.spacing['sm']),
                 _FilterChip(
-                  label: 'Groups',
+                  label: context.tr.groups,
                   isSelected: false,
                   onTap: () {},
                 ),
@@ -299,13 +289,13 @@ class _ArchivedButton extends StatelessWidget {
                   child: Icon(
                     Icons.archive_outlined,
                     color: theme.colorScheme.primary,
-                    semanticLabel: 'Archived chats',
+                    semanticLabel: context.tr.archived,
                   ),
                 ),
                 SizedBox(width: AppTheme.spacing['md']),
                 Expanded(
                   child: Text(
-                    'Archived',
+                    context.tr.archived,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -344,19 +334,19 @@ class _EmptyState extends StatelessWidget {
                 Icons.chat_bubble_outline,
                 size: 48,
                 color: theme.colorScheme.primary,
-                semanticLabel: 'No conversations',
+                semanticLabel: context.tr.noConversations,
               ),
             ),
             SizedBox(height: AppTheme.spacing['lg']),
             Text(
-              'No conversations yet',
+              context.tr.noConversations,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             SizedBox(height: AppTheme.spacing['sm']),
             Text(
-              'Start chatting with your friends',
+              context.tr.startChatting,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -457,7 +447,10 @@ class _ConversationTile extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _formatTimestamp(conversation.lastMessage?.timestamp),
+                        _formatTimestamp(
+                          context,
+                          conversation.lastMessage?.timestamp,
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: conversation.unreadCount > 0
                               ? colorScheme.primary
@@ -548,7 +541,7 @@ class _ConversationTile extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime? timestamp) {
+  String _formatTimestamp(BuildContext context, DateTime? timestamp) {
     if (timestamp == null) return '';
 
     final now = DateTime.now();
@@ -563,7 +556,7 @@ class _ConversationTile extends StatelessWidget {
     if (messageDate == today) {
       return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
     } else if (messageDate == yesterday) {
-      return 'Yesterday';
+      return context.tr.yesterday;
     } else {
       return '${timestamp.day}/${timestamp.month}';
     }
