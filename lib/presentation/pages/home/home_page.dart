@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../chat/chat_list_page.dart';
-import '../settings/settings_page.dart';
-import '../../core/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/pages/chat/chat_list_page.dart';
+import 'package:live_chat_app/presentation/pages/settings/settings_page.dart';
+import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -51,16 +51,7 @@ class _HomePageState extends State<HomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .scaffoldBackgroundColor
-                        .withValues(alpha: 0.8),
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(context)
-                            .dividerColor
-                            .withValues(alpha: 0.2),
-                      ),
-                    ),
+                    color: Colors.black.withValues(alpha: 0.05),
                   ),
                   child: Theme(
                     data: Theme.of(context).copyWith(
@@ -71,24 +62,22 @@ class _HomePageState extends State<HomePage> {
                       currentIndex: _selectedIndex,
                       onTap: _onTabTapped,
                       backgroundColor: Colors.transparent,
-                      selectedItemColor: Theme.of(context).colorScheme.primary,
-                      unselectedItemColor: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
                       type: BottomNavigationBarType.fixed,
-                      showSelectedLabels: true,
-                      showUnselectedLabels: true,
-                      elevation: 0,
                       items: [
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.chat_outlined),
-                          activeIcon: const Icon(Icons.chat),
+                          activeIcon: Icon(
+                            Icons.chat,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
                           label: context.tr.chats,
                         ),
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.settings_outlined),
-                          activeIcon: const Icon(Icons.settings),
+                          activeIcon: Icon(
+                            Icons.settings,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
                           label: context.tr.settings,
                         ),
                       ],

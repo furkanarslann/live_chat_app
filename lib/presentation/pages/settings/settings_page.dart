@@ -246,6 +246,7 @@ class _HelpSection extends StatelessWidget {
             //TODO(Furkan): Implement about page
           },
         ),
+        const SizedBox(height: kToolbarHeight)
       ],
     );
   }

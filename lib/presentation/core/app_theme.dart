@@ -9,6 +9,22 @@ class AppTheme {
     'away': Color(0xFFFF9800),
   };
 
+  // Text colors for consistent typography
+  static const textColors = {
+    'dark': {
+      'primary': Colors.white,
+      'secondary': Color(0xB3FFFFFF), // 70% white
+      'disabled': Color(0x80FFFFFF), // 50% white
+      'hint': Color(0x80FFFFFF), // 50% white
+    },
+    'light': {
+      'primary': Color(0xDE000000), // 87% black
+      'secondary': Color(0x99000000), // 60% black
+      'disabled': Color(0x61000000), // 38% black
+      'hint': Color(0x61000000), // 38% black
+    },
+  };
+
   // Elevation levels for consistent hierarchy
   static const elevations = {
     'base': 0.0,
@@ -32,7 +48,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     const primary = Color(0xFF00A884);
     const surface = Color(0xFF111B21);
-    const background = Color(0xFF0B141A);
+    const background = Color.fromARGB(255, 0, 0, 0);
 
     // Layer opacity levels for proper depth
     const layerOpacities = {
@@ -52,9 +68,8 @@ class AppTheme {
         surface: surface,
         background: background,
         error: const Color(0xFFE55959),
-        // Ensure proper contrast ratios
-        onBackground: Colors.white.withValues(alpha: 0.95),
-        onSurface: Colors.white.withValues(alpha: 0.95),
+        onBackground: textColors['dark']!['primary']!,
+        onSurface: textColors['dark']!['primary']!,
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: background,
@@ -62,13 +77,13 @@ class AppTheme {
         backgroundColor: surface.withValues(alpha: layerOpacities['overlay']!),
         elevation: elevations['base'],
         centerTitle: false,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
-          height: 1.2, // Improve readability
+          color: textColors['dark']!['primary'],
+          height: 1.2,
         ),
-        toolbarHeight: 64, // Ensure minimum touch target
+        toolbarHeight: 64,
       ),
       cardTheme: CardTheme(
         color: surface.withValues(alpha: layerOpacities['card']!),
@@ -80,8 +95,19 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surface.withValues(alpha: layerOpacities['modal']!),
-        selectedItemColor: primary,
-        unselectedItemColor: Colors.grey.withValues(alpha: 0.7),
+        selectedItemColor: textColors['dark']!['primary'],
+        unselectedItemColor: textColors['dark']!['secondary'],
+        selectedLabelStyle: TextStyle(
+          color: textColors['dark']!['primary'],
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.3,
+        ),
+        unselectedLabelStyle: TextStyle(
+          color: textColors['dark']!['secondary'],
+          fontSize: 11,
+          letterSpacing: 0.2,
+        ),
         type: BottomNavigationBarType.fixed,
         elevation: elevations['base'],
         landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
@@ -89,25 +115,25 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surface.withValues(alpha: layerOpacities['modal']!),
         indicatorColor: primary.withValues(alpha: 0.15),
-        height: 56, // Standard Material height
+        height: 56,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return IconThemeData(
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(
               color: primary,
               size: 24,
               opacity: 0.95,
             );
           }
           return IconThemeData(
-            color: Colors.grey.withValues(alpha: 0.7),
+            color: textColors['dark']!['secondary'],
             size: 22,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+          if (states.contains(WidgetState.selected)) {
             return TextStyle(
-              color: primary,
+              color: textColors['dark']!['primary'],
               fontSize: 12,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
@@ -115,7 +141,7 @@ class AppTheme {
             );
           }
           return TextStyle(
-            color: Colors.grey.withValues(alpha: 0.7),
+            color: textColors['dark']!['secondary'],
             fontSize: 11,
             letterSpacing: 0.2,
             height: 1.1,
@@ -146,40 +172,46 @@ class AppTheme {
           horizontal: 20,
           vertical: 16,
         ),
-        constraints:
-            const BoxConstraints(minHeight: 48), // Ensure minimum touch target
+        constraints: const BoxConstraints(minHeight: 48),
+        hintStyle: TextStyle(
+          color: textColors['dark']!['hint'],
+          fontSize: 16,
+          height: 1.5,
+        ),
       ),
       textTheme: Typography.material2021().white.copyWith(
-            // Improve text contrast and readability
             bodyLarge: Typography.material2021().white.bodyLarge?.copyWith(
+                  color: textColors['dark']!['primary'],
                   height: 1.5,
                   letterSpacing: 0.15,
                 ),
             bodyMedium: Typography.material2021().white.bodyMedium?.copyWith(
+                  color: textColors['dark']!['secondary'],
                   height: 1.5,
                   letterSpacing: 0.25,
                 ),
             titleLarge: Typography.material2021().white.titleLarge?.copyWith(
+                  color: textColors['dark']!['primary'],
                   height: 1.2,
                   letterSpacing: 0,
                 ),
             titleMedium: Typography.material2021().white.titleMedium?.copyWith(
+                  color: textColors['dark']!['primary'],
                   height: 1.3,
                   letterSpacing: 0.15,
                 ),
           ),
       dividerTheme: DividerThemeData(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: textColors['dark']!['primary']!.withValues(alpha: 0.1),
         space: 1,
       ),
-      // Animation durations
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
           TargetPlatform.android: ZoomPageTransitionsBuilder(),
         },
       ),
-      splashFactory: InkRipple.splashFactory, // More subtle ripple effect
+      splashFactory: InkRipple.splashFactory,
     );
   }
 
@@ -206,9 +238,8 @@ class AppTheme {
         surface: surface,
         background: background,
         error: const Color(0xFFDC3545),
-        // Ensure proper contrast ratios
-        onBackground: Colors.black.withValues(alpha: 0.87),
-        onSurface: Colors.black.withValues(alpha: 0.87),
+        onBackground: textColors['light']!['primary']!,
+        onSurface: textColors['light']!['primary']!,
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: background,
@@ -216,10 +247,10 @@ class AppTheme {
         backgroundColor: surface.withValues(alpha: layerOpacities['overlay']!),
         elevation: elevations['base'],
         centerTitle: false,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: Colors.black,
+          color: textColors['light']!['primary'],
           height: 1.2,
         ),
         toolbarHeight: 64,
@@ -234,8 +265,19 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surface.withValues(alpha: layerOpacities['modal']!),
-        selectedItemColor: primary,
-        unselectedItemColor: Colors.grey.withValues(alpha: 0.8),
+        selectedItemColor: textColors['light']!['primary'],
+        unselectedItemColor: textColors['light']!['secondary'],
+        selectedLabelStyle: TextStyle(
+          color: textColors['light']!['primary'],
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.3,
+        ),
+        unselectedLabelStyle: TextStyle(
+          color: textColors['light']!['secondary'],
+          fontSize: 11,
+          letterSpacing: 0.2,
+        ),
         type: BottomNavigationBarType.fixed,
         elevation: elevations['base'],
         landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
@@ -243,25 +285,25 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surface.withValues(alpha: layerOpacities['modal']!),
         indicatorColor: primary.withValues(alpha: 0.12),
-        height: 56, // Standard Material height
+        height: 56,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return IconThemeData(
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(
               color: primary,
               size: 24,
               opacity: 0.95,
             );
           }
           return IconThemeData(
-            color: Colors.grey.withValues(alpha: 0.8),
+            color: textColors['light']!['secondary'],
             size: 22,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return TextStyle(
-              color: primary,
+              color: textColors['light']!['primary'],
               fontSize: 12,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
@@ -269,7 +311,7 @@ class AppTheme {
             );
           }
           return TextStyle(
-            color: Colors.grey.withValues(alpha: 0.8),
+            color: textColors['light']!['secondary'],
             fontSize: 11,
             letterSpacing: 0.2,
             height: 1.1,
@@ -301,27 +343,36 @@ class AppTheme {
           vertical: 16,
         ),
         constraints: const BoxConstraints(minHeight: 48),
+        hintStyle: TextStyle(
+          color: textColors['light']!['hint'],
+          fontSize: 16,
+          height: 1.5,
+        ),
       ),
       textTheme: Typography.material2021().black.copyWith(
             bodyLarge: Typography.material2021().black.bodyLarge?.copyWith(
+                  color: textColors['light']!['primary'],
                   height: 1.5,
                   letterSpacing: 0.15,
                 ),
             bodyMedium: Typography.material2021().black.bodyMedium?.copyWith(
+                  color: textColors['light']!['secondary'],
                   height: 1.5,
                   letterSpacing: 0.25,
                 ),
             titleLarge: Typography.material2021().black.titleLarge?.copyWith(
+                  color: textColors['light']!['primary'],
                   height: 1.2,
                   letterSpacing: 0,
                 ),
             titleMedium: Typography.material2021().black.titleMedium?.copyWith(
+                  color: textColors['light']!['primary'],
                   height: 1.3,
                   letterSpacing: 0.15,
                 ),
           ),
       dividerTheme: DividerThemeData(
-        color: Colors.black.withValues(alpha: 0.1),
+        color: textColors['light']!['primary']!.withValues(alpha: 0.1),
         space: 1,
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
