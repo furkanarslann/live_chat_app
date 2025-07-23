@@ -57,7 +57,7 @@ class ChatCubit extends Cubit<ChatState> {
     if (state.selectedConversationId.isNone()) return;
 
     final conversationId = state.selectedConversationId.toNullable()!;
-    
+
     // Get the participant ID from the conversations list
     final participantId = state.failureOrConversations.fold(
       () => null,
@@ -76,13 +76,14 @@ class ChatCubit extends Cubit<ChatState> {
     final message = ChatMessage(
       id: DateTime.now().toString(),
       senderId: 'currentUser',
-      receiverId: participantId, // Use participant ID instead of conversation ID
+      receiverId:
+          participantId, // Use participant ID instead of conversation ID
       content: content,
       timestamp: DateTime.now(),
     );
 
     final result = await _repository.sendMessage(message);
-    
+
     emit(state.copyWith(
       isSending: false,
       failureOrSuccess: Some(result),

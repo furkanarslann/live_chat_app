@@ -98,6 +98,21 @@ class ChatRepositoryImpl implements ChatRepository {
         timestamp: DateTime.now().subtract(const Duration(minutes: 45)),
       ),
     ),
+    ChatConversation(
+      id: '7',
+      participantId: 'user7',
+      participantName: 'Liam Brown',
+      participantAvatar: 'https://i.pravatar.cc/150?img=7',
+      unreadCount: 0,
+      isOnline: true,
+      lastMessage: ChatMessage(
+        id: 'msg_liam1',
+        senderId: 'user7',
+        receiverId: 'currentUser',
+        content: 'Let\'s catch up later!',
+        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
+      ),
+    ),
   ];
 
   final _messages = <String, List<ChatMessage>>{
@@ -216,6 +231,22 @@ class ChatRepositoryImpl implements ChatRepository {
         receiverId: 'currentUser',
         content: 'Check out this new feature I just pushed! 🚀',
         timestamp: DateTime.now().subtract(const Duration(minutes: 45)),
+      ),
+    ],
+    '7': [
+      ChatMessage(
+        id: 'msg_liam1',
+        senderId: 'user7',
+        receiverId: 'currentUser',
+        content: 'Let\'s catch up later!',
+        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
+      ),
+      ChatMessage(
+        id: 'msg_liam2',
+        senderId: 'currentUser',
+        receiverId: 'user7',
+        content: 'Sure, I\'ll be free after 5 PM',
+        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
       ),
     ],
   };

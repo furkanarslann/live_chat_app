@@ -18,7 +18,8 @@ class ChatMessage extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, senderId, receiverId, content, timestamp, isRead];
+  List<Object?> get props =>
+      [id, senderId, receiverId, content, timestamp, isRead];
 
   ChatMessage copyWith({
     String? id,
@@ -37,4 +38,4 @@ class ChatMessage extends Equatable {
       isRead: isRead ?? this.isRead,
     );
   }
-} 
+}

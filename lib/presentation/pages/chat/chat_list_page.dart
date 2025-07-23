@@ -15,117 +15,115 @@ class ChatListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: context.colors.background,
-            title: Text(
-              context.tr.chats,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: context.colors.background,
+        title: Text(
+          context.tr.chats,
+          style: const TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            iconSize: 26,
+            tooltip: context.tr.newChat,
+            constraints: const BoxConstraints(
+              minWidth: 48,
+              minHeight: 48,
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                iconSize: 26,
-                tooltip: context.tr.newChat,
-                constraints: const BoxConstraints(
-                  minWidth: 48,
-                  minHeight: 48,
-                ),
-                onPressed: () {
-                  //TODO(Furkan): Implement new chat
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
+            onPressed: () {
+              //TODO(Furkan): Implement new chat
+            },
           ),
-          body: Column(
-            children: [
-              _buildFilterChips(context),
-              Expanded(
-                child: BlocBuilder<ChatCubit, ChatState>(
-                  builder: (context, state) {
-                    return state.failureOrConversations.fold(
-                      () => const Center(
-                        child: CircularProgressIndicator.adaptive(),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Column(
+        children: [
+          const _FilterChips(),
+          Expanded(
+            child: BlocBuilder<ChatCubit, ChatState>(
+              builder: (context, state) {
+                return state.failureOrConversations.fold(
+                  () => const Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  ),
+                  (failureOrConversations) => failureOrConversations.fold(
+                    (failure) => Center(
+                      child: Text(
+                        context.tr.errorOccured,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                       ),
-                      (failureOrConversations) => failureOrConversations.fold(
-                        (failure) => Center(
-                          child: Text(
-                            context.tr.errorOccured,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                          ),
-                        ),
-                        (conversations) => conversations.isEmpty
-                            ? _EmptyState()
-                            : CustomScrollView(
-                                slivers: [
-                                  SliverPadding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isWide ? 32 : 0,
-                                    ),
-                                    sliver: SliverList(
-                                      delegate: SliverChildBuilderDelegate(
-                                        (context, index) {
-                                          if (index == 0) {
-                                            return _ArchivedButton(
-                                              onTap: () {
-                                                //TODO(Furkan): Implement archived
-                                              },
-                                            );
-                                          }
-                                          return _ConversationTile(
-                                            conversation:
-                                                conversations[index - 1],
-                                            onTap: () {
-                                              context
-                                                  .read<ChatCubit>()
-                                                  .selectConversation(
-                                                      conversations[index - 1]
-                                                          .id);
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ChatPage(
-                                                    conversation: conversations[
-                                                        index - 1],
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                        childCount: conversations.length + 1,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                    ),
+                    (conversations) => conversations.isEmpty
+                        ? _ChatListEmptyContent()
+                        : _ChatListFilledContent(conversations),
+                  ),
+                );
+              },
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildFilterChips(BuildContext context) {
+class _ChatListFilledContent extends StatelessWidget {
+  const _ChatListFilledContent(this.conversations);
+  final List<ChatConversation> conversations;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              if (index == 0) {
+                return _ArchivedButton(
+                  onTap: () {
+                    //TODO(Furkan): Implement archived
+                  },
+                );
+              }
+
+              final current = conversations[index - 1];
+
+              return _ConversationTile(
+                conversation: current,
+                onTap: () {
+                  context.read<ChatCubit>().selectConversation(current.id);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatPage(
+                        conversation: current,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            childCount: conversations.length + 1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterChips extends StatelessWidget {
+  const _FilterChips({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -148,31 +146,41 @@ class ChatListPage extends StatelessWidget {
                 _FilterChip(
                   label: context.tr.all,
                   isSelected: true,
-                  onTap: () {},
+                  onTap: () {
+                    // TODO(Furkan): Implement filter
+                  },
                 ),
                 const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   label: context.tr.unread,
                   isSelected: false,
-                  onTap: () {},
+                  onTap: () {
+                    // TODO(Furkan): Implement filter
+                  },
                 ),
                 const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   label: context.tr.favorites,
                   isSelected: false,
-                  onTap: () {},
+                  onTap: () {
+                    // TODO(Furkan): Implement filter
+                  },
                 ),
                 const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   label: context.tr.groups,
                   isSelected: false,
-                  onTap: () {},
+                  onTap: () {
+                    // TODO(Furkan): Implement filter
+                  },
                 ),
                 const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   icon: Icons.add,
                   isSelected: false,
-                  onTap: () {},
+                  onTap: () {
+                    // TODO(Furkan): Implement filter
+                  },
                 ),
               ],
             ),
@@ -257,11 +265,9 @@ class _ArchivedButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.md,
-        vertical: Spacing.sm,
-      ),
+      padding: const EdgeInsets.all(Spacing.sm),
       child: Material(
         color: theme.cardColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
@@ -310,7 +316,7 @@ class _ArchivedButton extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
+class _ChatListEmptyContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
