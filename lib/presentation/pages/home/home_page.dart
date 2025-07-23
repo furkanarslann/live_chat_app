@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:live_chat_app/presentation/pages/chat/chat_list_page.dart';
 import 'package:live_chat_app/presentation/pages/settings/settings_page.dart';
-import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
@@ -20,17 +21,12 @@ class ChatListPage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
+            backgroundColor: context.colors.background,
             title: Text(
               context.tr.chats,
               style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-              ),
-            ),
-            flexibleSpace: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(color: Colors.transparent),
               ),
             ),
             actions: [
@@ -144,8 +140,8 @@ class ChatListPage extends StatelessWidget {
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(
-              horizontal: AppTheme.spacing['md']!,
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.md,
             ),
             child: Row(
               children: [
@@ -154,25 +150,25 @@ class ChatListPage extends StatelessWidget {
                   isSelected: true,
                   onTap: () {},
                 ),
-                SizedBox(width: AppTheme.spacing['sm']),
+                const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   label: context.tr.unread,
                   isSelected: false,
                   onTap: () {},
                 ),
-                SizedBox(width: AppTheme.spacing['sm']),
+                const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   label: context.tr.favorites,
                   isSelected: false,
                   onTap: () {},
                 ),
-                SizedBox(width: AppTheme.spacing['sm']),
+                const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   label: context.tr.groups,
                   isSelected: false,
                   onTap: () {},
                 ),
-                SizedBox(width: AppTheme.spacing['sm']),
+                const SizedBox(width: Spacing.sm),
                 _FilterChip(
                   icon: Icons.add,
                   isSelected: false,
@@ -262,9 +258,9 @@ class _ArchivedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppTheme.spacing['md']!,
-        vertical: AppTheme.spacing['sm']!,
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.md,
+        vertical: Spacing.sm,
       ),
       child: Material(
         color: theme.cardColor.withValues(alpha: 0.5),
@@ -274,14 +270,14 @@ class _ArchivedButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             constraints: const BoxConstraints(minHeight: 72),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppTheme.spacing['md']!,
-              vertical: AppTheme.spacing['sm']!,
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.md,
+              vertical: Spacing.sm,
             ),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(AppTheme.spacing['sm']!),
+                  padding: const EdgeInsets.all(Spacing.sm),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
@@ -292,7 +288,7 @@ class _ArchivedButton extends StatelessWidget {
                     semanticLabel: context.tr.archived,
                   ),
                 ),
-                SizedBox(width: AppTheme.spacing['md']),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Text(
                     context.tr.archived,
@@ -320,12 +316,12 @@ class _EmptyState extends StatelessWidget {
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppTheme.spacing['lg']!),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(AppTheme.spacing['lg']!),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
@@ -337,14 +333,14 @@ class _EmptyState extends StatelessWidget {
                 semanticLabel: context.tr.noConversations,
               ),
             ),
-            SizedBox(height: AppTheme.spacing['lg']),
+            const SizedBox(height: Spacing.lg),
             Text(
               context.tr.noConversations,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: AppTheme.spacing['sm']),
+            const SizedBox(height: Spacing.sm),
             Text(
               context.tr.startChatting,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -377,9 +373,9 @@ class _ConversationTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         constraints: const BoxConstraints(minHeight: 80),
-        padding: EdgeInsets.symmetric(
-          horizontal: AppTheme.spacing['md']!,
-          vertical: AppTheme.spacing['sm']!,
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.md,
+          vertical: Spacing.sm,
         ),
         child: Row(
           children: [
@@ -412,7 +408,7 @@ class _ConversationTile extends StatelessWidget {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: AppTheme.statusColors['online'],
+                          color: Colors.green,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: theme.scaffoldBackgroundColor,
@@ -430,7 +426,7 @@ class _ConversationTile extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: AppTheme.spacing['md']),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +459,7 @@ class _ConversationTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppTheme.spacing['xxs']),
+                  const SizedBox(height: Spacing.xxs),
                   Row(
                     children: [
                       if (conversation.lastMessage?.senderId == 'currentUser')
@@ -497,12 +493,12 @@ class _ConversationTile extends StatelessWidget {
                       ),
                       if (conversation.unreadCount > 0)
                         Container(
-                          margin: EdgeInsets.only(
-                            left: AppTheme.spacing['sm']!,
+                          margin: const EdgeInsets.only(
+                            left: Spacing.sm,
                           ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppTheme.spacing['xs']! + 2,
-                            vertical: AppTheme.spacing['xxs']!,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.xs + 2,
+                            vertical: Spacing.xxs,
                           ),
                           decoration: BoxDecoration(
                             color: colorScheme.primary,

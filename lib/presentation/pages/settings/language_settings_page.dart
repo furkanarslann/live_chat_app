@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
-import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 
 class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});
@@ -27,7 +27,7 @@ class LanguageSettingsPage extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(AppTheme.spacing['md']!),
+              padding: const EdgeInsets.all(Spacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -39,13 +39,13 @@ class LanguageSettingsPage extends StatelessWidget {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: AppTheme.spacing['md']),
+                  const SizedBox(height: Spacing.md),
                   _buildLanguageOption(
                     context: context,
                     title: 'English',
                     languageCode: 'en',
                   ),
-                  SizedBox(height: AppTheme.spacing['sm']),
+                  const SizedBox(height: Spacing.sm),
                   _buildLanguageOption(
                     context: context,
                     title: 'Deutsch',
@@ -76,7 +76,7 @@ class LanguageSettingsPage extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.all(AppTheme.spacing['md']!),
+        padding: const EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primary.withValues(alpha: 0.1)
@@ -92,7 +92,7 @@ class LanguageSettingsPage extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(AppTheme.spacing['sm']!),
+              padding: const EdgeInsets.all(Spacing.sm),
               decoration: BoxDecoration(
                 color: isSelected
                     ? colorScheme.primary.withValues(alpha: 0.1)
@@ -108,7 +108,7 @@ class LanguageSettingsPage extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: AppTheme.spacing['md']),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Text(
                 title,

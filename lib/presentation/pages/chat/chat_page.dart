@@ -4,7 +4,7 @@ import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../../domain/models/chat_message.dart';
-import '../../core/build_context_translate_ext.dart';
+import '../../core/extensions/build_context_translate_ext.dart';
 
 class ChatPage extends StatefulWidget {
   final ChatConversation conversation;
@@ -114,16 +114,11 @@ class _ChatPageState extends State<ChatPage> {
                             itemBuilder: (context, index) {
                               final message = messages[index];
                               final isMe = message.senderId == 'currentUser';
-                              final showAvatar = index == 0 ||
-                                  messages[index - 1].senderId !=
-                                      message.senderId;
 
                               return _MessageBubble(
                                 message: message,
                                 isMe: isMe,
-                                showAvatar: showAvatar,
-                                participantAvatar:
-                                    widget.conversation.participantAvatar,
+                                avatar: widget.conversation.participantAvatar,
                               );
                             },
                           ),
@@ -145,7 +140,7 @@ class _ChatPageState extends State<ChatPage> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -208,20 +203,19 @@ class _ChatPageState extends State<ChatPage> {
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
-  final bool showAvatar;
-  final String participantAvatar;
+  final String avatar;
 
   const _MessageBubble({
     required this.message,
     required this.isMe,
-    required this.showAvatar,
-    required this.participantAvatar,
+    this.avatar = '',
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final avatarExist = avatar.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -230,14 +224,12 @@ class _MessageBubble extends StatelessWidget {
             isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe && showAvatar) ...[
+          if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage(participantAvatar),
+              backgroundImage: NetworkImage(avatar),
             ),
             const SizedBox(width: 8),
-          ] else if (!isMe) ...[
-            const SizedBox(width: 40),
           ],
           Flexible(
             child: Container(
@@ -250,8 +242,8 @@ class _MessageBubble extends StatelessWidget {
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isMe || !showAvatar ? 20 : 5),
-                  bottomRight: Radius.circular(!isMe || !showAvatar ? 20 : 5),
+                  bottomLeft: Radius.circular(isMe || !avatarExist ? 20 : 5),
+                  bottomRight: Radius.circular(!isMe || !avatarExist ? 20 : 5),
                 ),
               ),
               child: Column(
@@ -273,8 +265,8 @@ class _MessageBubble extends StatelessWidget {
                         _formatTimestamp(message.timestamp),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: isMe
-                              ? colorScheme.onPrimary.withOpacity(0.7)
-                              : colorScheme.onSurface.withOpacity(0.6),
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                              : colorScheme.onSurface.withValues(alpha: 0.6),
                           fontSize: 10,
                         ),
                       ),
@@ -285,7 +277,7 @@ class _MessageBubble extends StatelessWidget {
                           size: 14,
                           color: message.isRead
                               ? Colors.blue
-                              : colorScheme.onPrimary.withOpacity(0.7),
+                              : colorScheme.onPrimary.withValues(alpha: 0.7),
                         ),
                       ],
                     ],
@@ -294,7 +286,7 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-          if (isMe && showAvatar) ...[
+          if (isMe && avatarExist) ...[
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,

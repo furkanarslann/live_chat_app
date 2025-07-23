@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
-import 'package:live_chat_app/presentation/core/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/pages/settings/language_settings_page.dart';
 import 'package:live_chat_app/presentation/pages/settings/theme_settings_page.dart';
 
@@ -39,13 +40,8 @@ class _AppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      backgroundColor: context.colors.background,
       title: Text(context.tr.settings),
-      flexibleSpace: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(color: Colors.transparent),
-        ),
-      ),
     );
   }
 }
@@ -57,7 +53,7 @@ class _ProfileSection extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Padding(
-      padding: EdgeInsets.all(AppTheme.spacing['md']!),
+      padding: const EdgeInsets.all(Spacing.md),
       child: Row(
         children: [
           Container(
@@ -65,7 +61,7 @@ class _ProfileSection extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -73,7 +69,7 @@ class _ProfileSection extends StatelessWidget {
             ),
             child: CircleAvatar(
               radius: 36,
-              backgroundColor: colorScheme.primary.withOpacity(0.1),
+              backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
               child: Icon(
                 Icons.person,
                 size: 36,
@@ -81,7 +77,7 @@ class _ProfileSection extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: AppTheme.spacing['md']),
+          const SizedBox(width: Spacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,11 +88,11 @@ class _ProfileSection extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: AppTheme.spacing['xs']),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   context.tr.available,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.statusColors['online'],
+                    color: Colors.green,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -268,7 +264,7 @@ class _SettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.all(AppTheme.spacing['md']!),
+            padding: const EdgeInsets.all(Spacing.md),
             child: Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -279,7 +275,7 @@ class _SettingsSection extends StatelessWidget {
             ),
           ),
           ...items,
-          SizedBox(height: AppTheme.spacing['sm']),
+          const SizedBox(height: Spacing.sm),
         ],
       ),
     );
@@ -309,16 +305,16 @@ class _SettingsItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         constraints: const BoxConstraints(minHeight: 72),
-        padding: EdgeInsets.symmetric(
-          horizontal: AppTheme.spacing['md']!,
-          vertical: AppTheme.spacing['sm']!,
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.md,
+          vertical: Spacing.sm,
         ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(AppTheme.spacing['sm']!),
+              padding: const EdgeInsets.all(Spacing.sm),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -327,7 +323,7 @@ class _SettingsItem extends StatelessWidget {
                 size: 24,
               ),
             ),
-            SizedBox(width: AppTheme.spacing['md']),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,11 +335,12 @@ class _SettingsItem extends StatelessWidget {
                     ),
                   ),
                   if (subtitle != null) ...[
-                    SizedBox(height: AppTheme.spacing['xxs']),
+                    const SizedBox(height: Spacing.xxs),
                     Text(
                       subtitle!,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -352,7 +349,7 @@ class _SettingsItem extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               size: 24,
             ),
           ],

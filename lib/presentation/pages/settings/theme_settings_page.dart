@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../application/theme/theme_cubit.dart';
 import '../../core/app_theme.dart';
-import '../../core/build_context_translate_ext.dart';
+import '../../core/extensions/build_context_translate_ext.dart';
 
 class ThemeSettingsPage extends StatelessWidget {
   const ThemeSettingsPage({super.key});
@@ -27,7 +27,7 @@ class ThemeSettingsPage extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(AppTheme.spacing['md']!),
+              padding: const EdgeInsets.all(Spacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -39,7 +39,7 @@ class ThemeSettingsPage extends StatelessWidget {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: AppTheme.spacing['md']),
+                  const SizedBox(height: Spacing.md),
                   _buildThemeOption(
                     context: context,
                     title: context.tr.light,
@@ -50,7 +50,7 @@ class ThemeSettingsPage extends StatelessWidget {
                     onTap: () =>
                         context.read<ThemeCubit>().setTheme(ThemeMode.light),
                   ),
-                  SizedBox(height: AppTheme.spacing['sm']),
+                  const SizedBox(height: Spacing.sm),
                   _buildThemeOption(
                     context: context,
                     title: context.tr.dark,
@@ -61,7 +61,7 @@ class ThemeSettingsPage extends StatelessWidget {
                     onTap: () =>
                         context.read<ThemeCubit>().setTheme(ThemeMode.dark),
                   ),
-                  SizedBox(height: AppTheme.spacing['sm']),
+                  const SizedBox(height: Spacing.sm),
                   _buildThemeOption(
                     context: context,
                     title: context.tr.system,
@@ -96,7 +96,7 @@ class ThemeSettingsPage extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.all(AppTheme.spacing['md']!),
+        padding: const EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primary.withOpacity(0.1)
@@ -112,7 +112,7 @@ class ThemeSettingsPage extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(AppTheme.spacing['sm']!),
+              padding: const EdgeInsets.all(Spacing.sm),
               decoration: BoxDecoration(
                 color: isSelected
                     ? colorScheme.primary.withOpacity(0.1)
@@ -125,7 +125,7 @@ class ThemeSettingsPage extends StatelessWidget {
                 size: 24,
               ),
             ),
-            SizedBox(width: AppTheme.spacing['md']),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Text(
                 title,

@@ -33,8 +33,8 @@ class LiveChatApp extends StatelessWidget {
 
           return MaterialApp(
             title: 'Live Chat',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
             themeMode: themeMode,
             locale: locale,
             localizationsDelegates: const [
