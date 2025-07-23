@@ -11,7 +11,7 @@ Future<void> setupDependencies() async {
     () => ChatRepositoryImpl(),
   );
 
-  // Cubits
+  // Blocs/Cubits
   getIt.registerFactory<ChatCubit>(
     () => ChatCubit(getIt<ChatRepository>()),
   );

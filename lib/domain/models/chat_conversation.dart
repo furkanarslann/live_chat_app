@@ -50,4 +50,4 @@ class ChatConversation extends Equatable {
       isOnline: isOnline ?? this.isOnline,
     );
   }
-} 
+}
