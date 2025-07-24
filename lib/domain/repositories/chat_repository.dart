@@ -8,6 +8,7 @@ abstract class ChatRepository {
   Future<Either<Failure, List<ChatMessage>>> getMessages(String conversationId);
   Future<Either<Failure, Unit>> sendMessage(ChatMessage message);
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId);
+  Future<Either<Failure, Unit>> clearChatHistory(String conversationId);
   Stream<Either<Failure, List<ChatMessage>>> watchMessages(
     String conversationId,
   );

@@ -95,6 +95,10 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(failureOrSuccess: Some(result)));
   }
 
+  Future<void> clearChatHistory(String conversationId) async {
+    await _repository.clearChatHistory(conversationId);
+  }
+
   @override
   Future<void> close() {
     _conversationsSubscription?.cancel();

@@ -1,0 +1,218 @@
+{
+  "messages": {
+    "1": [
+      {
+        "id": "msg1_1",
+        "senderId": "user1",
+        "receiverId": "currentUser",
+        "content": "Hey! I've been working on the new animation system 🎨",
+        "timestamp": "2024-03-19T10:15:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg1_2",
+        "senderId": "currentUser",
+        "receiverId": "user1",
+        "content": "That sounds exciting! What kind of animations are you implementing?",
+        "timestamp": "2024-03-19T10:16:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg1_3",
+        "senderId": "user1",
+        "receiverId": "currentUser",
+        "content": "Mainly micro-interactions for buttons and cards. Also added some smooth page transitions using Hero widgets! 🚀\n\nThe animations are customizable through our theme system.",
+        "timestamp": "2024-03-19T10:20:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg1",
+        "senderId": "user1",
+        "receiverId": "currentUser",
+        "content": "Just pushed the latest UI changes to the dev branch! 🚀 Let me know what you think about the new animations.",
+        "timestamp": "2024-03-19T10:30:00.000Z",
+        "isRead": false
+      }
+    ],
+    "2": [
+      {
+        "id": "msg2_1",
+        "senderId": "user2",
+        "receiverId": "currentUser",
+        "content": "I've been updating our API documentation to include more detailed error responses",
+        "timestamp": "2024-03-19T08:00:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg2_2",
+        "senderId": "currentUser",
+        "receiverId": "user2",
+        "content": "Great initiative! Are you using the OpenAPI specification?",
+        "timestamp": "2024-03-19T08:30:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg2_3",
+        "senderId": "user2",
+        "receiverId": "currentUser",
+        "content": "Yes! I've added examples for all status codes and included request/response schemas 📚",
+        "timestamp": "2024-03-19T08:45:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg2",
+        "senderId": "currentUser",
+        "receiverId": "user2",
+        "content": "The API documentation looks great! I've added some examples for error handling. 📝",
+        "timestamp": "2024-03-19T09:00:00.000Z",
+        "isRead": true
+      }
+    ],
+    "3": [
+      {
+        "id": "msg3_1",
+        "senderId": "user3",
+        "receiverId": "currentUser",
+        "content": "Hi! I've been experimenting with a new design system for our dashboard 🎯",
+        "timestamp": "2024-03-19T09:00:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg3_2",
+        "senderId": "currentUser",
+        "receiverId": "user3",
+        "content": "Interesting! What's the main focus of the redesign?",
+        "timestamp": "2024-03-19T09:15:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg3_3",
+        "senderId": "user3",
+        "receiverId": "currentUser",
+        "content": "We're focusing on better data visualization and accessibility. Added dark mode support too! 🌙\n\nAlso improved the responsive layout for different screen sizes.",
+        "timestamp": "2024-03-19T09:30:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg_sophie1",
+        "senderId": "user3",
+        "receiverId": "currentUser",
+        "content": "🎨 Check out these new design mockups for the dashboard! What do you think about the color scheme?",
+        "timestamp": "2024-03-19T10:00:00.000Z",
+        "isRead": false
+      }
+    ],
+    "4": [
+      {
+        "id": "msg4_1",
+        "senderId": "user4",
+        "receiverId": "currentUser",
+        "content": "Running security tests on the auth system",
+        "timestamp": "2024-03-19T07:00:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg4_2",
+        "senderId": "user4",
+        "receiverId": "currentUser",
+        "content": "Found something concerning in the token refresh logic",
+        "timestamp": "2024-03-19T07:15:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg_david1",
+        "senderId": "user4",
+        "receiverId": "currentUser",
+        "content": "Found a critical bug in the authentication flow. We should fix this ASAP. ⚠️",
+        "timestamp": "2024-03-19T07:30:00.000Z",
+        "isRead": false
+      }
+    ],
+    "5": [
+      {
+        "id": "msg5_1",
+        "senderId": "user5",
+        "receiverId": "currentUser",
+        "content": "Hey, can you send me the link to that article you mentioned?",
+        "timestamp": "2024-03-19T11:00:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg5_2",
+        "senderId": "currentUser",
+        "receiverId": "user5",
+        "content": "https://flutter.dev/docs/development/ui/animations",
+        "timestamp": "2024-03-19T11:10:00.000Z",
+        "isRead": true
+      },
+      {
+        "id": "msg_olivia1",
+        "senderId": "currentUser",
+        "receiverId": "user5",
+        "content": "k",
+        "timestamp": "2024-03-19T11:15:00.000Z",
+        "isRead": true
+      }
+    ],
+    "6": [
+      {
+        "id": "msg6_1",
+        "senderId": "user6",
+        "receiverId": "currentUser",
+        "content": "I've been analyzing our project timeline and dependencies 📊",
+        "timestamp": "2024-03-19T09:00:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg6_2",
+        "senderId": "user6",
+        "receiverId": "currentUser",
+        "content": "We might need to adjust some deadlines based on the new requirements",
+        "timestamp": "2024-03-19T09:15:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg6_3",
+        "senderId": "user6",
+        "receiverId": "currentUser",
+        "content": "I've created a detailed Gantt chart showing all the dependencies and critical paths",
+        "timestamp": "2024-03-19T09:30:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg_aiden1",
+        "senderId": "user6",
+        "receiverId": "currentUser",
+        "content": "Here's the full project timeline breakdown with all dependencies mapped out. Let's discuss this in our next meeting. 📊",
+        "timestamp": "2024-03-19T09:45:00.000Z",
+        "isRead": false
+      }
+    ],
+    "7": [
+      {
+        "id": "msg7_1",
+        "senderId": "user7",
+        "receiverId": "currentUser",
+        "content": "Hey! I've implemented that caching mechanism we discussed yesterday 💾",
+        "timestamp": "2024-03-19T09:45:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg7_2",
+        "senderId": "user7",
+        "receiverId": "currentUser",
+        "content": "Used LRU algorithm with configurable cache size and TTL",
+        "timestamp": "2024-03-19T09:55:00.000Z",
+        "isRead": false
+      },
+      {
+        "id": "msg_isabella1",
+        "senderId": "user7",
+        "receiverId": "currentUser",
+        "content": "Can you review my PR? I've implemented the new caching mechanism we discussed. Tests are passing ✅",
+        "timestamp": "2024-03-19T10:10:00.000Z",
+        "isRead": false
+      }
+    ]
+  }
+} 

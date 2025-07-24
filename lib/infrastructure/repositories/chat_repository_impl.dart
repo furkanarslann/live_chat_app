@@ -1,255 +1,15 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:dartz/dartz.dart';
-import '../../domain/core/failures.dart';
-import '../../domain/models/chat_conversation.dart';
-import '../../domain/models/chat_message.dart';
-import '../../domain/repositories/chat_repository.dart';
+import 'package:live_chat_app/domain/core/failures.dart';
+import 'package:live_chat_app/domain/models/chat_conversation.dart';
+import 'package:live_chat_app/domain/models/chat_message.dart';
+import 'package:live_chat_app/domain/repositories/chat_repository.dart';
+import 'package:live_chat_app/infrastructure/core/json_data_reader.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
-  final _conversations = <ChatConversation>[
-    ChatConversation(
-      id: '1',
-      participantId: 'user1',
-      participantName: 'John Doe',
-      participantAvatar: 'https://i.pravatar.cc/150?img=1',
-      unreadCount: 2,
-      isOnline: true,
-      lastMessage: ChatMessage(
-        id: 'msg1',
-        senderId: 'user1',
-        receiverId: 'currentUser',
-        content: 'Hey, how are you?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      ),
-    ),
-    ChatConversation(
-      id: '2',
-      participantId: 'user2',
-      participantName: 'Jane Smith',
-      participantAvatar: 'https://i.pravatar.cc/150?img=2',
-      unreadCount: 0,
-      isOnline: false,
-      lastMessage: ChatMessage(
-        id: 'msg2',
-        senderId: 'currentUser',
-        receiverId: 'user2',
-        content: 'See you tomorrow!',
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
-    ),
-    ChatConversation(
-      id: '3',
-      participantId: 'user3',
-      participantName: 'Alex Johnson',
-      participantAvatar: 'https://i.pravatar.cc/150?img=3',
-      unreadCount: 5,
-      isOnline: true,
-      lastMessage: ChatMessage(
-        id: 'msg_alex1',
-        senderId: 'user3',
-        receiverId: 'currentUser',
-        content: 'Did you review the project proposal?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-      ),
-    ),
-    ChatConversation(
-      id: '4',
-      participantId: 'user4',
-      participantName: 'Sarah Wilson',
-      participantAvatar: 'https://i.pravatar.cc/150?img=4',
-      unreadCount: 0,
-      isOnline: true,
-      lastMessage: ChatMessage(
-        id: 'msg_sarah1',
-        senderId: 'currentUser',
-        receiverId: 'user4',
-        content: 'The design looks perfect! 👍',
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-    ),
-    ChatConversation(
-      id: '5',
-      participantId: 'user5',
-      participantName: 'Mike Brown',
-      participantAvatar: 'https://i.pravatar.cc/150?img=5',
-      unreadCount: 1,
-      isOnline: false,
-      lastMessage: ChatMessage(
-        id: 'msg_mike1',
-        senderId: 'user5',
-        receiverId: 'currentUser',
-        content: 'Are we still on for lunch?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-      ),
-    ),
-    ChatConversation(
-      id: '6',
-      participantId: 'user6',
-      participantName: 'Emma Davis',
-      participantAvatar: 'https://i.pravatar.cc/150?img=6',
-      unreadCount: 3,
-      isOnline: true,
-      lastMessage: ChatMessage(
-        id: 'msg_emma1',
-        senderId: 'user6',
-        receiverId: 'currentUser',
-        content: 'Check out this new feature I just pushed! 🚀',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 45)),
-      ),
-    ),
-    ChatConversation(
-      id: '7',
-      participantId: 'user7',
-      participantName: 'Liam Brown',
-      participantAvatar: 'https://i.pravatar.cc/150?img=7',
-      unreadCount: 0,
-      isOnline: true,
-      lastMessage: ChatMessage(
-        id: 'msg_liam1',
-        senderId: 'user7',
-        receiverId: 'currentUser',
-        content: 'Let\'s catch up later!',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-      ),
-    ),
-  ];
-
-  final _messages = <String, List<ChatMessage>>{
-    '1': [
-      ChatMessage(
-        id: 'msg1',
-        senderId: 'user1',
-        receiverId: 'currentUser',
-        content: 'Hey, how are you?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      ),
-      ChatMessage(
-        id: 'msg2',
-        senderId: 'currentUser',
-        receiverId: 'user1',
-        content: 'I\'m good, thanks! How about you?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
-      ),
-    ],
-    '2': [
-      ChatMessage(
-        id: 'msg3',
-        senderId: 'user2',
-        receiverId: 'currentUser',
-        content: 'Are we still meeting tomorrow?',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      ChatMessage(
-        id: 'msg4',
-        senderId: 'currentUser',
-        receiverId: 'user2',
-        content: 'See you tomorrow!',
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
-    ],
-    '3': [
-      ChatMessage(
-        id: 'msg_alex1',
-        senderId: 'user3',
-        receiverId: 'currentUser',
-        content: 'Hey, can we discuss the project timeline?',
-        timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-      ),
-      ChatMessage(
-        id: 'msg_alex2',
-        senderId: 'currentUser',
-        receiverId: 'user3',
-        content: 'Sure, I\'ll prepare the schedule.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-      ChatMessage(
-        id: 'msg_alex3',
-        senderId: 'user3',
-        receiverId: 'currentUser',
-        content: 'Great! I\'ve sent you the requirements.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      ChatMessage(
-        id: 'msg_alex4',
-        senderId: 'user3',
-        receiverId: 'currentUser',
-        content: 'Did you review the project proposal?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-      ),
-    ],
-    '4': [
-      ChatMessage(
-        id: 'msg_sarah1',
-        senderId: 'user4',
-        receiverId: 'currentUser',
-        content: 'Here\'s the latest UI design',
-        timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      ),
-      ChatMessage(
-        id: 'msg_sarah2',
-        senderId: 'user4',
-        receiverId: 'currentUser',
-        content: 'I made some changes to the color scheme',
-        timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-      ),
-      ChatMessage(
-        id: 'msg_sarah3',
-        senderId: 'currentUser',
-        receiverId: 'user4',
-        content: 'The design looks perfect! 👍',
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-    ],
-    '5': [
-      ChatMessage(
-        id: 'msg_mike1',
-        senderId: 'user5',
-        receiverId: 'currentUser',
-        content: 'Are we still on for lunch?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-      ),
-    ],
-    '6': [
-      ChatMessage(
-        id: 'msg_emma1',
-        senderId: 'user6',
-        receiverId: 'currentUser',
-        content: 'I just finished implementing the new API',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      ChatMessage(
-        id: 'msg_emma2',
-        senderId: 'user6',
-        receiverId: 'currentUser',
-        content: 'The tests are all passing',
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
-      ChatMessage(
-        id: 'msg_emma3',
-        senderId: 'user6',
-        receiverId: 'currentUser',
-        content: 'Check out this new feature I just pushed! 🚀',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 45)),
-      ),
-    ],
-    '7': [
-      ChatMessage(
-        id: 'msg_liam1',
-        senderId: 'user7',
-        receiverId: 'currentUser',
-        content: 'Let\'s catch up later!',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-      ),
-      ChatMessage(
-        id: 'msg_liam2',
-        senderId: 'currentUser',
-        receiverId: 'user7',
-        content: 'Sure, I\'ll be free after 5 PM',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      ),
-    ],
-  };
+  List<ChatConversation> _conversations = [];
+  Map<String, List<ChatMessage>> _messages = {};
 
   final _conversationsController =
       StreamController<List<ChatConversation>>.broadcast();
@@ -270,6 +30,21 @@ class ChatRepositoryImpl implements ChatRepository {
   ];
 
   Timer? _autoMessageTimer;
+
+  ChatRepositoryImpl() {
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      _conversations = await JsonDataReader.loadConversations();
+      _messages = await JsonDataReader.loadMessages();
+      _conversationsController.add(_conversations);
+    } catch (e) {
+      // Handle initialization error
+      print('Error initializing chat data: $e');
+    }
+  }
 
   ChatMessage _generateRandomMessage(String senderId, String receiverId) {
     final random = Random();
@@ -379,8 +154,7 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId) async {
     try {
-      await Future.delayed(
-          const Duration(milliseconds: 500)); // Simulate network delay
+      await Future.delayed(const Duration(milliseconds: 500));
 
       for (final entry in _messages.entries) {
         final messageIndex =
@@ -424,7 +198,9 @@ class ChatRepositoryImpl implements ChatRepository {
       _messagesControllers[conversationId]?.add(messages);
     });
 
-    return _messagesControllers[conversationId]!.stream.map(Right.new);
+    return _messagesControllers[conversationId]!.stream.map((messages) {
+      return Right(messages);
+    });
   }
 
   @override
@@ -434,6 +210,44 @@ class ChatRepositoryImpl implements ChatRepository {
       _conversationsController.add(_conversations);
     });
 
-    return _conversationsController.stream.map(Right.new);
+    return _conversationsController.stream.map((conversations) {
+      return Right(conversations);
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearChatHistory(String conversationId) async {
+    try {
+      // Simulate network delay
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Clear messages for the conversation
+      _messages[conversationId] = [];
+
+      // Update conversation to remove last message and reset unread count
+      final conversationIndex =
+          _conversations.indexWhere((conv) => conv.id == conversationId);
+
+      if (conversationIndex != -1) {
+        _conversations[conversationIndex] = ChatConversation(
+          lastMessage: null,
+          unreadCount: 0,
+          id: _conversations[conversationIndex].id,
+          participantId: _conversations[conversationIndex].participantId,
+          participantName: _conversations[conversationIndex].participantName,
+          participantAvatar:
+              _conversations[conversationIndex].participantAvatar,
+          isOnline: _conversations[conversationIndex].isOnline,
+        );
+      }
+
+      // Notify listeners
+      _conversationsController.add(_conversations);
+      _messagesControllers[conversationId]?.add([]);
+
+      return const Right(unit);
+    } catch (e) {
+      return const Left(UnexpectedFailure());
+    }
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/domain/models/chat_conversation.dart';
 
 class ParticipantProfilePage extends StatelessWidget {
@@ -170,6 +172,6 @@ class _ActionButtons extends StatelessWidget {
 
     if (shouldClear == null || !shouldClear || !context.mounted) return;
 
-    // await context.read<ChatCubit>().clearChatHistory(conversation.id);
+    await context.read<ChatCubit>().clearChatHistory(conversation.id);
   }
 }
