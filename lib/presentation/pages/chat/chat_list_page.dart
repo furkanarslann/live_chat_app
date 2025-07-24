@@ -1,13 +1,12 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../core/app_theme.dart';
-
 import 'chat_page.dart';
 
 class ChatListPage extends StatelessWidget {
@@ -47,7 +46,7 @@ class ChatListPage extends StatelessWidget {
           Expanded(
             child: BlocBuilder<ChatCubit, ChatState>(
               builder: (context, state) {
-                return state.failureOrConversations.fold(
+                return state.failureOrConversationsOpt.fold(
                   () => const Center(
                     child: CircularProgressIndicator.adaptive(),
                   ),
@@ -78,6 +77,21 @@ class _ChatListFilledContent extends StatelessWidget {
   const _ChatListFilledContent(this.conversations);
   final List<ChatConversation> conversations;
 
+  List<ChatConversation> get _sortedConversations {
+    conversations.sort((a, b) {
+      // First sort by pinned status
+      if (a.isPinned != b.isPinned) {
+        return a.isPinned ? -1 : 1; // Pinned conversations go first
+      }
+      // Then sort by date within each group (pinned and unpinned)
+      final aTime = a.lastMessage?.timestamp ?? DateTime(0);
+      final bTime = b.lastMessage?.timestamp ?? DateTime(0);
+      return bTime.compareTo(aTime); // Newest first
+    });
+
+    return conversations;
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -93,7 +107,7 @@ class _ChatListFilledContent extends StatelessWidget {
                 );
               }
 
-              final current = conversations[index - 1];
+              final current = _sortedConversations[index - 1];
 
               return _ConversationTile(
                 conversation: current,
@@ -111,7 +125,7 @@ class _ChatListFilledContent extends StatelessWidget {
                 },
               );
             },
-            childCount: conversations.length + 1,
+            childCount: _sortedConversations.length + 1,
           ),
         ),
       ],
@@ -362,6 +376,71 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Slidable(
+      key: ValueKey(conversation.id),
+      // Start action pane (right to left swipe)
+      startActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              context.read<ChatCubit>().togglePin(conversation.id);
+            },
+            backgroundColor: conversation.isPinned ? Colors.orange : Colors.blue,
+            foregroundColor: Colors.white,
+            icon: conversation.isPinned ? Icons.push_pin_outlined : Icons.push_pin,
+            label: conversation.isPinned ? 'Unpin' : 'Pin',
+          ),
+        ],
+      ),
+      // End action pane (left to right swipe)
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        dismissible: DismissiblePane(
+          onDismissed: () {
+            context.read<ChatCubit>().deleteConversation(conversation.id);
+          },
+        ),
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              context.read<ChatCubit>().archiveConversation(conversation.id);
+            },
+            backgroundColor: const Color(0xFF7BC043),
+            foregroundColor: Colors.white,
+            icon: Icons.archive,
+            label: 'Archive',
+          ),
+          SlidableAction(
+            onPressed: (_) {
+              context.read<ChatCubit>().deleteConversation(conversation.id);
+            },
+            backgroundColor: const Color(0xFFFE4A49),
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: _ConversationTileContent(
+        conversation: conversation,
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _ConversationTileContent extends StatelessWidget {
+  final ChatConversation conversation;
+  final VoidCallback onTap;
+
+  const _ConversationTileContent({
+    required this.conversation,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -392,8 +471,7 @@ class _ConversationTile extends StatelessWidget {
                     ),
                     child: CircleAvatar(
                       radius: 28,
-                      backgroundImage:
-                          NetworkImage(conversation.participantAvatar),
+                      backgroundImage: NetworkImage(conversation.participantAvatar),
                     ),
                   ),
                   if (conversation.isOnline)
@@ -429,6 +507,15 @@ class _ConversationTile extends StatelessWidget {
                 children: [
                   Row(
                     children: [
+                      if (conversation.isPinned)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Icon(
+                            Icons.push_pin,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                        ),
                       Expanded(
                         child: Text(
                           conversation.participantName,
@@ -447,9 +534,8 @@ class _ConversationTile extends StatelessWidget {
                           color: conversation.unreadCount > 0
                               ? colorScheme.primary
                               : colorScheme.onSurface.withValues(alpha: 0.5),
-                          fontWeight: conversation.unreadCount > 0
-                              ? FontWeight.w600
-                              : null,
+                          fontWeight:
+                              conversation.unreadCount > 0 ? FontWeight.w600 : null,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -501,8 +587,7 @@ class _ConversationTile extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    colorScheme.primary.withValues(alpha: 0.25),
+                                color: colorScheme.primary.withValues(alpha: 0.25),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

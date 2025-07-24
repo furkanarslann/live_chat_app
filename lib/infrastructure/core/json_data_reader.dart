@@ -34,6 +34,7 @@ class JsonDataReader {
         unreadCount: json['unreadCount'],
         isOnline: json['isOnline'],
         lastMessage: lastMessage,
+        isPinned: json['isPinned'] ?? false,
       );
     }).toList();
   }

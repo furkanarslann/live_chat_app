@@ -6,48 +6,55 @@ import '../../domain/models/chat_message.dart';
 
 class ChatState extends Equatable {
   final bool isLoading;
-  final Option<Either<Failure, List<ChatConversation>>> failureOrConversations;
-  final Option<Either<Failure, List<ChatMessage>>> failureOrMessages;
-  final Option<String> selectedConversationId;
+  final Option<Either<Failure, List<ChatConversation>>>
+      failureOrConversationsOpt;
+  final Option<Either<Failure, List<ChatMessage>>> failureOrMessagesOpt;
+  final Option<String> selectedConversationIdOpt;
   final bool isSending;
-  final Option<Either<Failure, Unit>> failureOrSuccess;
+  final Option<Either<Failure, Unit>> failureOrSuccessOpt;
 
   const ChatState({
     this.isLoading = false,
-    this.failureOrConversations = const None(),
-    this.failureOrMessages = const None(),
-    this.selectedConversationId = const None(),
+    this.failureOrConversationsOpt = const None(),
+    this.failureOrMessagesOpt = const None(),
+    this.selectedConversationIdOpt = const None(),
     this.isSending = false,
-    this.failureOrSuccess = const None(),
+    this.failureOrSuccessOpt = const None(),
   });
 
   @override
   List<Object?> get props => [
         isLoading,
-        failureOrConversations,
-        failureOrMessages,
-        selectedConversationId,
+        failureOrConversationsOpt,
+        failureOrMessagesOpt,
+        selectedConversationIdOpt,
         isSending,
-        failureOrSuccess,
+        failureOrSuccessOpt,
       ];
+
+  List<ChatConversation> get conversationsOrEmpty {
+    return failureOrConversationsOpt
+        .getOrElse(() => right([]))
+        .getOrElse(() => []);
+  }
 
   ChatState copyWith({
     bool? isLoading,
-    Option<Either<Failure, List<ChatConversation>>>? failureOrConversations,
-    Option<Either<Failure, List<ChatMessage>>>? failureOrMessages,
-    Option<String>? selectedConversationId,
+    Option<Either<Failure, List<ChatConversation>>>? failureOrConversationsOpt,
+    Option<Either<Failure, List<ChatMessage>>>? failureOrMessagesOpt,
+    Option<String>? selectedConversationIdOpt,
     bool? isSending,
-    Option<Either<Failure, Unit>>? failureOrSuccess,
+    Option<Either<Failure, Unit>>? failureOrSuccessOpt,
   }) {
     return ChatState(
       isLoading: isLoading ?? this.isLoading,
-      failureOrConversations:
-          failureOrConversations ?? this.failureOrConversations,
-      failureOrMessages: failureOrMessages ?? this.failureOrMessages,
-      selectedConversationId:
-          selectedConversationId ?? this.selectedConversationId,
+      failureOrConversationsOpt:
+          failureOrConversationsOpt ?? this.failureOrConversationsOpt,
+      failureOrMessagesOpt: failureOrMessagesOpt ?? this.failureOrMessagesOpt,
+      selectedConversationIdOpt:
+          selectedConversationIdOpt ?? this.selectedConversationIdOpt,
       isSending: isSending ?? this.isSending,
-      failureOrSuccess: failureOrSuccess ?? this.failureOrSuccess,
+      failureOrSuccessOpt: failureOrSuccessOpt ?? this.failureOrSuccessOpt,
     );
   }
 }

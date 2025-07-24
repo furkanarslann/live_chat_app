@@ -95,14 +95,14 @@ class _ChatPageState extends State<ChatPage> {
           Expanded(
             child: BlocConsumer<ChatCubit, ChatState>(
               listener: (context, state) {
-                if (state.failureOrMessages.isSome()) {
+                if (state.failureOrMessagesOpt.isSome()) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _scrollToBottom();
                   });
                 }
               },
               builder: (context, state) {
-                return state.failureOrMessages.fold(
+                return state.failureOrMessagesOpt.fold(
                   () => const Center(child: CircularProgressIndicator()),
                   (failureOrMessages) => failureOrMessages.fold(
                     (failure) => Center(

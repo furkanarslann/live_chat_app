@@ -13,4 +13,4 @@ class ThemeCubit extends Cubit<ThemeMode> {
   }
 
   bool get isDarkMode => state == ThemeMode.dark;
-} 
+}

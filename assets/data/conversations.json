@@ -7,6 +7,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=1",
       "unreadCount": 3,
       "isOnline": true,
+      "isPinned": true,
       "lastMessage": {
         "id": "msg1",
         "senderId": "user1",
@@ -23,6 +24,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=2",
       "unreadCount": 0,
       "isOnline": false,
+      "isPinned": false,
       "lastMessage": {
         "id": "msg2",
         "senderId": "currentUser",
@@ -39,6 +41,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=3",
       "unreadCount": 8,
       "isOnline": true,
+      "isPinned": true,
       "lastMessage": {
         "id": "msg_sophie1",
         "senderId": "user3",
@@ -55,6 +58,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=4",
       "unreadCount": 1,
       "isOnline": true,
+      "isPinned": false,
       "lastMessage": {
         "id": "msg_david1",
         "senderId": "user4",
@@ -71,6 +75,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=5",
       "unreadCount": 0,
       "isOnline": false,
+      "isPinned": false,
       "lastMessage": {
         "id": "msg_olivia1",
         "senderId": "currentUser",
@@ -87,6 +92,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=6",
       "unreadCount": 15,
       "isOnline": true,
+      "isPinned": false,
       "lastMessage": {
         "id": "msg_aiden1",
         "senderId": "user6",
@@ -103,6 +109,7 @@
       "participantAvatar": "https://i.pravatar.cc/150?img=7",
       "unreadCount": 2,
       "isOnline": true,
+      "isPinned": false,
       "lastMessage": {
         "id": "msg_isabella1",
         "senderId": "user7",

@@ -19,7 +19,7 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> _initializeConversations() async {
     final failureOrConversations = await _repository.getConversations();
     emit(state.copyWith(
-      failureOrConversations: Some(failureOrConversations),
+      failureOrConversationsOpt: Some(failureOrConversations),
     ));
   }
 
@@ -28,7 +28,7 @@ class ChatCubit extends Cubit<ChatState> {
     _conversationsSubscription = _repository.watchConversations().listen(
       (failureOrConversations) {
         emit(state.copyWith(
-          failureOrConversations: Some(failureOrConversations),
+          failureOrConversationsOpt: Some(failureOrConversations),
         ));
       },
     );
@@ -36,8 +36,8 @@ class ChatCubit extends Cubit<ChatState> {
 
   void selectConversation(String conversationId) {
     emit(state.copyWith(
-      selectedConversationId: Some(conversationId),
-      failureOrMessages: none(),
+      selectedConversationIdOpt: Some(conversationId),
+      failureOrMessagesOpt: none(),
     ));
     _watchMessages(conversationId);
   }
@@ -47,19 +47,19 @@ class ChatCubit extends Cubit<ChatState> {
     _messagesSubscription = _repository.watchMessages(conversationId).listen(
       (failureOrMessages) {
         emit(state.copyWith(
-          failureOrMessages: Some(failureOrMessages),
+          failureOrMessagesOpt: Some(failureOrMessages),
         ));
       },
     );
   }
 
   Future<void> sendMessage(String content) async {
-    if (state.selectedConversationId.isNone()) return;
+    if (state.selectedConversationIdOpt.isNone()) return;
 
-    final conversationId = state.selectedConversationId.toNullable()!;
+    final conversationId = state.selectedConversationIdOpt.toNullable()!;
 
     // Get the participant ID from the conversations list
-    final participantId = state.failureOrConversations.fold(
+    final participantId = state.failureOrConversationsOpt.fold(
       () => null,
       (failureOrConversations) => failureOrConversations.fold(
         (failure) => null,
@@ -86,17 +86,60 @@ class ChatCubit extends Cubit<ChatState> {
 
     emit(state.copyWith(
       isSending: false,
-      failureOrSuccess: Some(result),
+      failureOrSuccessOpt: Some(result),
     ));
   }
 
   Future<void> markMessageAsRead(String messageId) async {
     final result = await _repository.markMessageAsRead(messageId);
-    emit(state.copyWith(failureOrSuccess: Some(result)));
+    emit(state.copyWith(failureOrSuccessOpt: Some(result)));
   }
 
   Future<void> clearChatHistory(String conversationId) async {
     await _repository.clearChatHistory(conversationId);
+  }
+
+  void togglePin(String conversationId) {
+    final conversations = state.conversationsOrEmpty;
+    if (conversations.isEmpty) return;
+
+    final conversation = conversations.firstWhere(
+      (conv) => conv.id == conversationId,
+    );
+
+    final updatedConversation = conversation.copyWith(
+      isPinned: !conversation.isPinned,
+    );
+
+    // Update the conversation in repository
+    // Note: In a real app, this would be an API call
+    final updatedConversations = conversations.map((conv) {
+      if (conv.id == conversationId) {
+        return updatedConversation;
+      }
+      return conv;
+    }).toList();
+
+    emit(state.copyWith(
+      failureOrConversationsOpt: some(right(updatedConversations)),
+    ));
+  }
+
+  void archiveConversation(String conversationId) {
+    // TODO: Implement archive functionality
+  }
+
+  void deleteConversation(String conversationId) {
+    final conversations = state.conversationsOrEmpty;
+    if (conversations.isEmpty) return;
+
+    final updatedConversations = conversations.where((conv) {
+      return conv.id != conversationId;
+    }).toList();
+
+    emit(state.copyWith(
+      failureOrConversationsOpt: some(right(updatedConversations)),
+    ));
   }
 
   @override
