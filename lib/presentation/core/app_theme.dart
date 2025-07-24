@@ -54,7 +54,7 @@ class AppColors {
   });
 
   factory AppColors.light() {
-    const base = Color(0xFF008069);
+    const base = Color(0xFF1856AF);
     const surface = Colors.white;
 
     return AppColors._(
@@ -76,7 +76,7 @@ class AppColors {
   }
 
   factory AppColors.dark() {
-    const base = Color(0xFF00A884);
+    const base = Color.fromARGB(255, 116, 137, 244);
     const surface = Color(0xFF111B21);
 
     return AppColors._(
@@ -124,12 +124,12 @@ class AppTheme {
         centerTitle: false,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
           color: colors.textPrimary,
           height: 1.2,
         ),
-        toolbarHeight: 64,
+        toolbarHeight: 56,
       ),
       cardTheme: CardTheme(
         color: colors.surface.withValues(alpha: colors.cardOpacity),
@@ -169,9 +169,9 @@ class AppTheme {
         selectedItemColor: colors.textPrimary,
         unselectedItemColor: colors.textSecondary,
         selectedLabelStyle: const TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: FontWeight.w500,
-          letterSpacing: 0.3,
+          letterSpacing: 0.2,
         ),
         unselectedLabelStyle: const TextStyle(
           fontSize: 11,
@@ -185,24 +185,64 @@ class AppTheme {
               ? Typography.material2021().white
               : Typography.material2021().black)
           .copyWith(
-        bodyLarge: TextStyle(
-          color: colors.textPrimary,
-          height: 1.5,
-          letterSpacing: 0.15,
+        bodySmall: TextStyle(
+          color: colors.textHint,
+          height: 1.4,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.3,
         ),
         bodyMedium: TextStyle(
           color: colors.textSecondary,
-          height: 1.5,
-          letterSpacing: 0.25,
+          height: 1.4,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.2,
+        ),
+        bodyLarge: TextStyle(
+          color: colors.textPrimary,
+          fontSize: 15,
+          height: 1.4,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
         ),
         titleLarge: TextStyle(
           color: colors.textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
           height: 1.2,
         ),
         titleMedium: TextStyle(
           color: colors.textPrimary,
           height: 1.3,
-          letterSpacing: 0.15,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
+        ),
+        titleSmall: TextStyle(
+          color: colors.textPrimary,
+          height: 1.3,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
+        ),
+        labelLarge: TextStyle(
+          color: colors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+        labelMedium: TextStyle(
+          color: colors.textSecondary,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.2,
+        ),
+        labelSmall: TextStyle(
+          color: colors.textSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.2,
         ),
       ),
       dividerTheme: DividerThemeData(

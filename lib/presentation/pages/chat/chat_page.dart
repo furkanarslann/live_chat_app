@@ -5,6 +5,7 @@ import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../../domain/models/chat_message.dart';
 import '../../core/extensions/build_context_translate_ext.dart';
+import 'participant_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
   final ChatConversation conversation;
@@ -43,30 +44,42 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage:
-                  NetworkImage(widget.conversation.participantAvatar),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.conversation.participantName,
-                  style: Theme.of(context).textTheme.titleMedium,
+        title: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ParticipantProfilePage(
+                  conversation: widget.conversation,
                 ),
-                if (widget.conversation.isOnline)
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundImage:
+                    NetworkImage(widget.conversation.participantAvatar),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    context.tr.online,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.green,
-                        ),
+                    widget.conversation.participantName,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-              ],
-            ),
-          ],
+                  if (widget.conversation.isOnline)
+                    Text(
+                      context.tr.online,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.green,
+                          ),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(

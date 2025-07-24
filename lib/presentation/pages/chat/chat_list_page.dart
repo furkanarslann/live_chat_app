@@ -125,65 +125,55 @@ class _FilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.withValues(alpha: 0.1),
-              ),
-            ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.sm,
           ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: Spacing.md,
-            ),
-            child: Row(
-              children: [
-                _FilterChip(
-                  label: context.tr.all,
-                  isSelected: true,
-                  onTap: () {
-                    // TODO(Furkan): Implement filter
-                  },
-                ),
-                const SizedBox(width: Spacing.sm),
-                _FilterChip(
-                  label: context.tr.unread,
-                  isSelected: false,
-                  onTap: () {
-                    // TODO(Furkan): Implement filter
-                  },
-                ),
-                const SizedBox(width: Spacing.sm),
-                _FilterChip(
-                  label: context.tr.favorites,
-                  isSelected: false,
-                  onTap: () {
-                    // TODO(Furkan): Implement filter
-                  },
-                ),
-                const SizedBox(width: Spacing.sm),
-                _FilterChip(
-                  label: context.tr.groups,
-                  isSelected: false,
-                  onTap: () {
-                    // TODO(Furkan): Implement filter
-                  },
-                ),
-                const SizedBox(width: Spacing.sm),
-                _FilterChip(
-                  icon: Icons.add,
-                  isSelected: false,
-                  onTap: () {
-                    // TODO(Furkan): Implement filter
-                  },
-                ),
-              ],
-            ),
+          child: Row(
+            children: [
+              _FilterChip(
+                label: context.tr.all,
+                isSelected: true,
+                onTap: () {
+                  // TODO(Furkan): Implement filter
+                },
+              ),
+              const SizedBox(width: Spacing.sm),
+              _FilterChip(
+                label: context.tr.unread,
+                isSelected: false,
+                onTap: () {
+                  // TODO(Furkan): Implement filter
+                },
+              ),
+              const SizedBox(width: Spacing.sm),
+              _FilterChip(
+                label: context.tr.favorites,
+                isSelected: false,
+                onTap: () {
+                  // TODO(Furkan): Implement filter
+                },
+              ),
+              const SizedBox(width: Spacing.sm),
+              _FilterChip(
+                label: context.tr.groups,
+                isSelected: false,
+                onTap: () {
+                  // TODO(Furkan): Implement filter
+                },
+              ),
+              const SizedBox(width: Spacing.sm),
+              _FilterChip(
+                icon: Icons.add,
+                isSelected: false,
+                onTap: () {
+                  // TODO(Furkan): Implement filter
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -225,8 +215,8 @@ class _FilterChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Container(
             constraints: const BoxConstraints(
-              minWidth: 48,
-              minHeight: 48,
+              minWidth: 68,
+              minHeight: 36,
             ),
             padding: EdgeInsets.symmetric(
               horizontal: label != null ? 16 : 12,
