@@ -112,7 +112,6 @@ class ChatCubit extends Cubit<ChatState> {
     );
 
     // Update the conversation in repository
-    // Note: In a real app, this would be an API call
     final updatedConversations = conversations.map((conv) {
       if (conv.id == conversationId) {
         return updatedConversation;
@@ -125,17 +124,36 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  void archiveConversation(String conversationId) {
-    // TODO: Implement archive functionality
+  void toggleArchiveConversation(String conversationId) {
+    final conversations = state.conversationsOrEmpty;
+    if (conversations.isEmpty) return;
+
+    final conversation = conversations.firstWhere(
+      (conv) => conv.id == conversationId,
+    );
+
+    final archiveToggledConversation = conversation.copyWith(
+      isArchived: !conversation.isArchived, // Toggle archive state
+      isPinned: false, // Unpin when archiving
+    );
+
+    // Update the conversation in repository
+    final updatedConversations = conversations.map((conv) {
+      if (conv.id == conversationId) {
+        return archiveToggledConversation;
+      }
+      return conv;
+    }).toList();
+
+    emit(state.copyWith(
+      failureOrConversationsOpt: some(right(updatedConversations)),
+    ));
   }
 
   void deleteConversation(String conversationId) {
     final conversations = state.conversationsOrEmpty;
-    if (conversations.isEmpty) return;
-
-    final updatedConversations = conversations.where((conv) {
-      return conv.id != conversationId;
-    }).toList();
+    final updatedConversations =
+        conversations.where((conv) => conv.id != conversationId).toList();
 
     emit(state.copyWith(
       failureOrConversationsOpt: some(right(updatedConversations)),

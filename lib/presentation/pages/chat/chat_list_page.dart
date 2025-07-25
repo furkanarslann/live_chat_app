@@ -78,7 +78,9 @@ class _ChatListFilledContent extends StatelessWidget {
   final List<ChatConversation> conversations;
 
   List<ChatConversation> get _sortedConversations {
-    conversations.sort((a, b) {
+    final nonArchived =
+        conversations.where((conv) => !conv.isArchived).toList();
+    nonArchived.sort((a, b) {
       // First sort by pinned status
       if (a.isPinned != b.isPinned) {
         return a.isPinned ? -1 : 1; // Pinned conversations go first
@@ -88,32 +90,50 @@ class _ChatListFilledContent extends StatelessWidget {
       final bTime = b.lastMessage?.timestamp ?? DateTime(0);
       return bTime.compareTo(aTime); // Newest first
     });
+    return nonArchived;
+  }
 
-    return conversations;
+  List<ChatConversation> get _archivedConversations {
+    return conversations.where((conv) => conv.isArchived).toList()
+      ..sort((a, b) {
+        final aTime = a.lastMessage?.timestamp ?? DateTime(0);
+        final bTime = b.lastMessage?.timestamp ?? DateTime(0);
+        return bTime.compareTo(aTime); // Newest first
+      });
   }
 
   @override
   Widget build(BuildContext context) {
+    final sortedConversations = _sortedConversations;
+    final archivedConversations = _archivedConversations;
+    final hasArchivedConversations = archivedConversations.isNotEmpty;
+
     return CustomScrollView(
       slivers: [
+        if (hasArchivedConversations)
+          SliverToBoxAdapter(
+            child: _ArchivedButton(
+              count: archivedConversations.length,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ArchivedConversationsPage(
+                      conversations: archivedConversations,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              if (index == 0) {
-                return _ArchivedButton(
-                  onTap: () {
-                    //TODO(Furkan): Implement archived
-                  },
-                );
-              }
-
-              final current = _sortedConversations[index - 1];
-
+              final current = sortedConversations[index];
               return _ConversationTile(
                 conversation: current,
                 onTap: () {
                   context.read<ChatCubit>().selectConversation(current.id);
-
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -125,7 +145,7 @@ class _ChatListFilledContent extends StatelessWidget {
                 },
               );
             },
-            childCount: _sortedConversations.length + 1,
+            childCount: sortedConversations.length,
           ),
         ),
       ],
@@ -263,8 +283,12 @@ class _FilterChip extends StatelessWidget {
 
 class _ArchivedButton extends StatelessWidget {
   final VoidCallback onTap;
+  final int count;
 
-  const _ArchivedButton({required this.onTap});
+  const _ArchivedButton({
+    required this.onTap,
+    required this.count,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -300,11 +324,24 @@ class _ArchivedButton extends StatelessWidget {
                 ),
                 const SizedBox(width: Spacing.md),
                 Expanded(
-                  child: Text(
-                    context.tr.archived,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr.archived,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$count ${context.tr.conversations}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Icon(
@@ -315,6 +352,70 @@ class _ArchivedButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ArchivedConversationsPage extends StatelessWidget {
+  final List<ChatConversation> conversations;
+
+  const ArchivedConversationsPage({
+    super.key,
+    required this.conversations,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.tr.archived),
+      ),
+      body: BlocBuilder<ChatCubit, ChatState>(
+        builder: (context, state) {
+          final archivedConversations = state.archivedConversations;
+
+          if (archivedConversations.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.archive_outlined,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  Text(
+                    context.tr.noConversations,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: archivedConversations.length,
+            itemBuilder: (context, index) {
+              final conversation = archivedConversations[index];
+              return _ConversationTile(
+                conversation: conversation,
+                onTap: () {
+                  context.read<ChatCubit>().selectConversation(conversation.id);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatPage(
+                        conversation: conversation,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -379,20 +480,41 @@ class _ConversationTile extends StatelessWidget {
     return Slidable(
       key: ValueKey(conversation.id),
       // Start action pane (right to left swipe)
-      startActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (_) {
-              context.read<ChatCubit>().togglePin(conversation.id);
-            },
-            backgroundColor: conversation.isPinned ? Colors.orange : Colors.blue,
-            foregroundColor: Colors.white,
-            icon: conversation.isPinned ? Icons.push_pin_outlined : Icons.push_pin,
-            label: conversation.isPinned ? 'Unpin' : 'Pin',
-          ),
-        ],
-      ),
+      startActionPane: conversation.isArchived
+          ? ActionPane(
+              motion: const DrawerMotion(),
+              children: [
+                SlidableAction(
+                  onPressed: (_) {
+                    context
+                        .read<ChatCubit>()
+                        .toggleArchiveConversation(conversation.id);
+                  },
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  icon: Icons.unarchive,
+                  label: context.tr.unarchive,
+                ),
+              ],
+            )
+          : ActionPane(
+              motion: const DrawerMotion(),
+              children: [
+                SlidableAction(
+                  onPressed: (_) {
+                    context.read<ChatCubit>().togglePin(conversation.id);
+                  },
+                  backgroundColor:
+                      conversation.isPinned ? Colors.orange : Colors.blue,
+                  foregroundColor: Colors.white,
+                  icon: conversation.isPinned
+                      ? Icons.push_pin_outlined
+                      : Icons.push_pin,
+                  label:
+                      conversation.isPinned ? context.tr.unpin : context.tr.pin,
+                ),
+              ],
+            ),
       // End action pane (left to right swipe)
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
@@ -402,15 +524,18 @@ class _ConversationTile extends StatelessWidget {
           },
         ),
         children: [
-          SlidableAction(
-            onPressed: (_) {
-              context.read<ChatCubit>().archiveConversation(conversation.id);
-            },
-            backgroundColor: const Color(0xFF7BC043),
-            foregroundColor: Colors.white,
-            icon: Icons.archive,
-            label: 'Archive',
-          ),
+          if (!conversation.isArchived)
+            SlidableAction(
+              onPressed: (_) {
+                context
+                    .read<ChatCubit>()
+                    .toggleArchiveConversation(conversation.id);
+              },
+              backgroundColor: const Color(0xFF7BC043),
+              foregroundColor: Colors.white,
+              icon: Icons.archive,
+              label: context.tr.archived,
+            ),
           SlidableAction(
             onPressed: (_) {
               context.read<ChatCubit>().deleteConversation(conversation.id);
@@ -418,7 +543,7 @@ class _ConversationTile extends StatelessWidget {
             backgroundColor: const Color(0xFFFE4A49),
             foregroundColor: Colors.white,
             icon: Icons.delete,
-            label: 'Delete',
+            label: context.tr.delete,
           ),
         ],
       ),
@@ -471,7 +596,8 @@ class _ConversationTileContent extends StatelessWidget {
                     ),
                     child: CircleAvatar(
                       radius: 28,
-                      backgroundImage: NetworkImage(conversation.participantAvatar),
+                      backgroundImage:
+                          NetworkImage(conversation.participantAvatar),
                     ),
                   ),
                   if (conversation.isOnline)
@@ -534,8 +660,9 @@ class _ConversationTileContent extends StatelessWidget {
                           color: conversation.unreadCount > 0
                               ? colorScheme.primary
                               : colorScheme.onSurface.withValues(alpha: 0.5),
-                          fontWeight:
-                              conversation.unreadCount > 0 ? FontWeight.w600 : null,
+                          fontWeight: conversation.unreadCount > 0
+                              ? FontWeight.w600
+                              : null,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -587,7 +714,8 @@ class _ConversationTileContent extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withValues(alpha: 0.25),
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.25),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

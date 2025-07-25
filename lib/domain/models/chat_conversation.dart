@@ -10,6 +10,7 @@ class ChatConversation extends Equatable {
   final bool isOnline;
   final ChatMessage? lastMessage;
   final bool isPinned;
+  final bool isArchived;
 
   const ChatConversation({
     required this.id,
@@ -20,6 +21,7 @@ class ChatConversation extends Equatable {
     required this.isOnline,
     this.lastMessage,
     this.isPinned = false,
+    this.isArchived = false,
   });
 
   @override
@@ -32,6 +34,7 @@ class ChatConversation extends Equatable {
         isOnline,
         lastMessage,
         isPinned,
+        isArchived,
       ];
 
   ChatConversation copyWith({
@@ -43,6 +46,7 @@ class ChatConversation extends Equatable {
     bool? isOnline,
     ChatMessage? lastMessage,
     bool? isPinned,
+    bool? isArchived,
   }) {
     return ChatConversation(
       id: id ?? this.id,
@@ -53,6 +57,7 @@ class ChatConversation extends Equatable {
       isOnline: isOnline ?? this.isOnline,
       lastMessage: lastMessage ?? this.lastMessage,
       isPinned: isPinned ?? this.isPinned,
+      isArchived: isArchived ?? this.isArchived,
     );
   }
 }

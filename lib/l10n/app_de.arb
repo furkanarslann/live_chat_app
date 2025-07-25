@@ -35,5 +35,10 @@
   "online": "Online",
   "noMessages": "Noch keine Nachrichten",
   "showQrCode": "QR-Code anzeigen",
-  "yourName": "Dein Name"
+  "yourName": "Dein Name",
+  "conversations": "Gespräche",
+  "unarchive": "Aus Archiv entfernen",
+  "pin": "Anheften",
+  "unpin": "Losheften",
+  "delete": "Löschen"
 }

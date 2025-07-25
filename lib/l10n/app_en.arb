@@ -143,5 +143,25 @@
   "yourName": "Your Name",
   "@yourName": {
     "description": "Profile name placeholder"
+  },
+  "conversations": "Conversations",
+  "@conversations": {
+    "description": "Plural form of conversation, used in archive count"
+  },
+  "unarchive": "Unarchive",
+  "@unarchive": {
+    "description": "Action to remove a conversation from archives"
+  },
+  "pin": "Pin",
+  "@pin": {
+    "description": "Action to pin a conversation to the top"
+  },
+  "unpin": "Unpin",
+  "@unpin": {
+    "description": "Action to unpin a conversation"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Action to delete a conversation"
   }
 }
