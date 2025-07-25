@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,11 +10,6 @@ import 'package:live_chat_app/domain/repositories/auth_repository.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final firebase_auth.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
-
-  // Email validation regex
-  final _emailRegex = RegExp(
-    r'^(?:[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?!yok\.com$)((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
-  );
 
   AuthRepositoryImpl({
     firebase_auth.FirebaseAuth? firebaseAuth,
@@ -27,11 +24,6 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
   }) async {
     try {
-      // Validate email format
-      if (!_emailRegex.hasMatch(email)) {
-        return left(const InvalidEmailFailure());
-      }
-
       // Check if email already exists in Firestore
       final querySnapshot = await _firestore
           .collection('users')
@@ -73,8 +65,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return right(user);
     } on firebase_auth.FirebaseAuthException catch (e) {
+      log('FirebaseAuthException: ${e.code}', error: e);
       return left(AuthFailure(e.message ?? 'Authentication failed'));
     } catch (e) {
+      log('Unexpected error: $e', error: e);
       return left(UnexpectedFailure(e.toString()));
     }
   }
@@ -85,11 +79,6 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      // Validate email format
-      if (!_emailRegex.hasMatch(email)) {
-        return left(const InvalidEmailFailure());
-      }
-
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,

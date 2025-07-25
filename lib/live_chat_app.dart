@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
-import 'package:live_chat_app/application/auth/auth_state.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
@@ -29,46 +28,24 @@ class LiveChatApp extends StatelessWidget {
           final themeMode = context.watch<ThemeCubit>().state;
           final locale = context.watch<LanguageCubit>().state;
 
-          return BlocListener<AuthCubit, AuthState>(
-            listenWhen: (previous, current) =>
-                previous.status != current.status,
-            listener: (context, state) {
-              switch (state.status) {
-                case AuthStatus.authenticated:
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRouter.home,
-                    (route) => false,
-                  );
-                  break;
-                case AuthStatus.unauthenticated:
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRouter.login,
-                    (route) => false,
-                  );
-                  break;
-                default:
-                  break;
-              }
-            },
-            child: MaterialApp(
-              title: 'Live Chat',
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
-              themeMode: themeMode,
-              locale: locale,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en'), // English
-                Locale('de'), // German
-              ],
-              onGenerateRoute: AppRouter.onGenerateRoute,
-              home: const SplashPage(),
-            ),
+          return MaterialApp(
+            title: 'Live Chat',
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: themeMode,
+            locale: locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'), // English
+              Locale('de'), // German
+            ],
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            home: const SplashPage(),
           );
         },
       ),

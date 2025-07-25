@@ -84,13 +84,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _onSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthCubit>().register(
-            email: _emailController.text,
-            password: _passwordController.text,
-            name: _nameController.text,
-          );
-    }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    context.read<AuthCubit>().register(
+          email: _emailController.text,
+          password: _passwordController.text,
+          name: _nameController.text,
+        );
   }
 
   @override
@@ -225,6 +225,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
                     BlocBuilder<AuthCubit, AuthState>(
+                      buildWhen: (previous, current) {
+                        return previous.isSubmitting != current.isSubmitting;
+                      },
                       builder: (context, state) {
                         return CustomButton(
                           text: context.tr.createAccount,
