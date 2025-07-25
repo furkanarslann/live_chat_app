@@ -163,5 +163,30 @@
   "delete": "Delete",
   "@delete": {
     "description": "Action to delete a conversation"
-  }
+  },
+  "welcomeBack": "Welcome Back!",
+  "signInToContinue": "Sign in to continue",
+  "email": "Email",
+  "enterEmail": "Enter your email",
+  "password": "Password",
+  "enterPassword": "Enter your password",
+  "signIn": "Sign In",
+  "dontHaveAccount": "Don't have an account?",
+  "signUp": "Sign Up",
+  "pleaseEnterEmail": "Please enter your email",
+  "pleaseEnterPassword": "Please enter your password",
+  "emailInvalid": "Please enter a valid email address",
+  "createAccount": "Create Account",
+  "joinUs": "Join Us!",
+  "createAccountToStart": "Create an account to get started",
+  "fullName": "Full Name",
+  "enterFullName": "Enter your full name",
+  "pleaseEnterName": "Please enter your name",
+  "pleaseEnterFullName": "Please enter your full name",
+  "confirmPassword": "Confirm Password",
+  "confirmYourPassword": "Confirm your password",
+  "pleaseConfirmPassword": "Please confirm your password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "passwordRequirements": "Password must be at least 8 characters long and contain uppercase, lowercase, number and special character",
+  "alreadyHaveAccount": "Already have an account?"
 }

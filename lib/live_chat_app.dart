@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'application/chat/chat_cubit.dart';
-import 'application/theme/theme_cubit.dart';
-import 'application/language/language_cubit.dart';
-import 'presentation/core/app_theme.dart';
-import 'presentation/pages/home/home_page.dart';
-import 'setup_dependencies.dart';
+import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/auth/auth_state.dart';
+import 'package:live_chat_app/application/chat/chat_cubit.dart';
+import 'package:live_chat_app/application/language/language_cubit.dart';
+import 'package:live_chat_app/application/theme/theme_cubit.dart';
+import 'package:live_chat_app/presentation/core/app_theme.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
+import 'package:live_chat_app/presentation/pages/splash/splash_page.dart';
+import 'package:live_chat_app/setup_dependencies.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LiveChatApp extends StatelessWidget {
@@ -16,38 +19,56 @@ class LiveChatApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ChatCubit>(
-          create: (_) => getIt<ChatCubit>(),
-        ),
-        BlocProvider<ThemeCubit>(
-          create: (_) => ThemeCubit(),
-        ),
-        BlocProvider<LanguageCubit>(
-          create: (_) => LanguageCubit(),
-        ),
+        BlocProvider<AuthCubit>(create: (_) => getIt<AuthCubit>()),
+        BlocProvider<ChatCubit>(create: (_) => getIt<ChatCubit>()),
+        BlocProvider<ThemeCubit>(create: (_) => getIt<ThemeCubit>()),
+        BlocProvider<LanguageCubit>(create: (_) => getIt<LanguageCubit>()),
       ],
       child: Builder(
         builder: (context) {
           final themeMode = context.watch<ThemeCubit>().state;
           final locale = context.watch<LanguageCubit>().state;
 
-          return MaterialApp(
-            title: 'Live Chat',
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
-            themeMode: themeMode,
-            locale: locale,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('en'), // English
-              Locale('de'), // German
-            ],
-            home: const HomePage(),
+          return BlocListener<AuthCubit, AuthState>(
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
+            listener: (context, state) {
+              switch (state.status) {
+                case AuthStatus.authenticated:
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.home,
+                    (route) => false,
+                  );
+                  break;
+                case AuthStatus.unauthenticated:
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRouter.login,
+                    (route) => false,
+                  );
+                  break;
+                default:
+                  break;
+              }
+            },
+            child: MaterialApp(
+              title: 'Live Chat',
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: themeMode,
+              locale: locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'), // English
+                Locale('de'), // German
+              ],
+              onGenerateRoute: AppRouter.onGenerateRoute,
+              home: const SplashPage(),
+            ),
           );
         },
       ),
