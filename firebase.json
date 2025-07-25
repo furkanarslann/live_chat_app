@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "live-chat-app-innoscripta",
+          "appId": "1:980920624554:android:8aa60dd92ba976270977d3",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "live-chat-app-innoscripta",
+          "appId": "1:980920624554:ios:8bf6d359d2af55990977d3",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "live-chat-app-innoscripta",
+          "configurations": {
+            "android": "1:980920624554:android:8aa60dd92ba976270977d3",
+            "ios": "1:980920624554:ios:8bf6d359d2af55990977d3"
+          }
+        }
+      }
+    }
+  }
+}
