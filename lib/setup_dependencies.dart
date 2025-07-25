@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/language/language_cubit.dart';
+import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/domain/repositories/auth_repository.dart';
 import 'package:live_chat_app/infrastructure/repositories/firebase_auth_repository.dart';
 import 'application/chat/chat_cubit.dart';
@@ -35,4 +37,6 @@ Future<void> setupDependencies() async {
   getIt.registerFactory<ChatCubit>(
     () => ChatCubit(getIt<ChatRepository>()),
   );
+  getIt.registerFactory<ThemeCubit>(() => ThemeCubit());
+  getIt.registerFactory<LanguageCubit>(() => LanguageCubit());
 }
