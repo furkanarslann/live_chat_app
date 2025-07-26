@@ -88,6 +88,14 @@
   "noOtherUsers": "Keine anderen Benutzer gefunden",
   "noUsersMatchSearch": "Keine Benutzer entsprechen Ihrer Suche",
   "errorLoadingUsers": "Fehler: {error}",
+    "@errorLoadingUsers": {
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Fehler beim Laden der Benutzer"
+      }
+    }
+  },
   "noMessagesTitle": "Noch keine Nachrichten",
   "noMessagesSubtitle": "Sende eine Nachricht, um die Unterhaltung zu beginnen!"
 }
