@@ -11,7 +11,7 @@ class ChatState extends Equatable {
   final Option<Either<Failure, List<ChatMessage>>> failureOrMessagesOpt;
   final Option<String> selectedConversationIdOpt;
   final bool isSending;
-  final Option<Either<Failure, Unit>> failureOrSuccessOpt;
+  final Option<Either<Failure, Unit>> failOrSendSuccessOpt;
 
   const ChatState({
     this.isLoading = false,
@@ -19,7 +19,7 @@ class ChatState extends Equatable {
     this.failureOrMessagesOpt = const None(),
     this.selectedConversationIdOpt = const None(),
     this.isSending = false,
-    this.failureOrSuccessOpt = const None(),
+    this.failOrSendSuccessOpt = const None(),
   });
 
   @override
@@ -29,7 +29,7 @@ class ChatState extends Equatable {
         failureOrMessagesOpt,
         selectedConversationIdOpt,
         isSending,
-        failureOrSuccessOpt,
+        failOrSendSuccessOpt,
       ];
 
   List<ChatConversation> get conversationsOrEmpty {
@@ -48,7 +48,7 @@ class ChatState extends Equatable {
     Option<Either<Failure, List<ChatMessage>>>? failureOrMessagesOpt,
     Option<String>? selectedConversationIdOpt,
     bool? isSending,
-    Option<Either<Failure, Unit>>? failureOrSuccessOpt,
+    Option<Either<Failure, Unit>>? failOrSendSuccessOpt,
   }) {
     return ChatState(
       isLoading: isLoading ?? this.isLoading,
@@ -58,7 +58,7 @@ class ChatState extends Equatable {
       selectedConversationIdOpt:
           selectedConversationIdOpt ?? this.selectedConversationIdOpt,
       isSending: isSending ?? this.isSending,
-      failureOrSuccessOpt: failureOrSuccessOpt ?? this.failureOrSuccessOpt,
+      failOrSendSuccessOpt: failOrSendSuccessOpt ?? this.failOrSendSuccessOpt,
     );
   }
 }

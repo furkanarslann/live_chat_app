@@ -14,6 +14,7 @@ abstract class ChatRepository {
   Future<Either<Failure, Unit>> sendMessage({
     required String content,
     required String participantId,
+    required String conversationId,
   });
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId);
 

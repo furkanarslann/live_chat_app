@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
@@ -9,6 +7,7 @@ import '../../../domain/models/chat_conversation.dart';
 import '../../../domain/models/chat_message.dart';
 import '../../core/extensions/build_context_translate_ext.dart';
 import '../../core/widgets/user_avatar.dart';
+import '../../core/widgets/glassy_snackbar.dart';
 import 'participant_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
@@ -85,32 +84,61 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: BlocBuilder<ChatCubit, ChatState>(
-              builder: (context, state) {
-                return state.failureOrMessagesOpt.fold(
-                  () => const Center(child: CircularProgressIndicator()),
-                  (failureOrMessages) => failureOrMessages.fold(
-                    (failure) => Center(
-                      child: Text(
-                        context.tr.errorOccured,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                      ),
-                    ),
-                    (messages) => messages.isEmpty
-                        ? const _EmptyChatContent()
-                        : _FilledChatContent(conversation: widget.conversation),
-                  ),
+      body: BlocListener<ChatCubit, ChatState>(
+        listenWhen: (previous, current) =>
+            previous.failOrSendSuccessOpt != current.failOrSendSuccessOpt,
+        listener: (context, state) {
+          state.failOrSendSuccessOpt.fold(
+            () {},
+            (failureOrSuccess) => failureOrSuccess.fold(
+              (failure) {
+                // Show error message
+                GlassySnackBar.show(
+                  context,
+                  message: context.tr.errorOccured,
+                  type: GlassySnackBarType.failure,
                 );
+                // Clear error state after showing message
+                context.read<ChatCubit>().clearErrorState();
+              },
+              (success) {
+                // Message sent successfully - no need to show anything
+                // Clear success state
+                context.read<ChatCubit>().clearErrorState();
               },
             ),
-          ),
-          _buildMessageInput(),
-        ],
+          );
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: BlocBuilder<ChatCubit, ChatState>(
+                builder: (context, state) {
+                  return state.failureOrMessagesOpt.fold(
+                    () => const Center(child: CircularProgressIndicator()),
+                    (failureOrMessages) => failureOrMessages.fold(
+                      (failure) => Center(
+                        child: Text(
+                          context.tr.errorOccured,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                        ),
+                      ),
+                      (messages) => messages.isEmpty
+                          ? const _EmptyChatContent()
+                          : _FilledChatContent(
+                              conversation: widget.conversation,
+                            ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            _buildMessageInput(),
+          ],
+        ),
       ),
     );
   }
@@ -166,9 +194,10 @@ class _ChatPageState extends State<ChatPage> {
                       ? null
                       : () {
                           if (_messageController.text.trim().isNotEmpty) {
-                            context
-                                .read<ChatCubit>()
-                                .sendMessage(_messageController.text.trim());
+                            context.read<ChatCubit>().sendMessage(
+                                  _messageController.text.trim(),
+                                  widget.conversation.participantId,
+                                );
                             _messageController.clear();
                           }
                         },
@@ -216,7 +245,7 @@ class _FilledChatContentState extends State<_FilledChatContent> {
     if (!animated) return _scrollController.jumpTo(maxScrollExtent);
 
     _scrollController.animateTo(
-      maxScrollExtent,
+      maxScrollExtent + 50,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
@@ -225,13 +254,13 @@ class _FilledChatContentState extends State<_FilledChatContent> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatCubit, ChatState>(
-      listenWhen: (previous, current) =>
-          previous.messagesOrEmpty.length != current.messagesOrEmpty.length,
+      listenWhen: (previous, current) {
+        return previous.messagesOrEmpty.length !=
+            current.messagesOrEmpty.length;
+      },
       listener: (context, state) {
-        if (state.messagesOrEmpty.last.senderId != context.userId) {
-          // Only scroll to bottom if the last message is not sent by the current user
-          _scrollToBottom(context);
-        }
+        if (state.messagesOrEmpty.isEmpty) return;
+        _scrollToBottom(context);
       },
       builder: (context, state) {
         final messages = state.messagesOrEmpty;

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
-import '../../domain/core/failures.dart';
 import '../../domain/repositories/chat_repository.dart';
 import 'chat_state.dart';
 
@@ -55,49 +54,28 @@ class ChatCubit extends Cubit<ChatState> {
     );
   }
 
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, String participantId) async {
     if (state.selectedConversationIdOpt.isNone()) return;
 
     final conversationId = state.selectedConversationIdOpt.toNullable()!;
-
-    // Get the participant ID from the conversations list
-    final participantId = state.failureOrConversationsOpt.fold(
-      () => null,
-      (failureOrConversations) => failureOrConversations.fold(
-        (failure) => null,
-        (conversations) {
-          final conversation = conversations.firstWhere(
-            (conv) => conv.id == conversationId,
-            orElse: () => throw const UnexpectedFailure(),
-          );
-          return conversation.participantId;
-        },
-      ),
-    );
-
-    if (participantId == null) {
-      emit(state.copyWith(
-        failureOrSuccessOpt: some(left(const UnexpectedFailure())),
-      ));
-      return;
-    }
 
     emit(state.copyWith(isSending: true));
 
     final result = await _repository.sendMessage(
       content: content,
       participantId: participantId,
+      conversationId: conversationId,
     );
 
     emit(state.copyWith(
       isSending: false,
-      failureOrSuccessOpt: Some(result),
+      failOrSendSuccessOpt: Some(result),
     ));
   }
 
   Future<void> markMessageAsRead(String messageId) async {
     final result = await _repository.markMessageAsRead(messageId);
-    emit(state.copyWith(failureOrSuccessOpt: Some(result)));
+    // TODO(Furkan): Handle mark message as read
   }
 
   Future<void> clearChatHistory(String conversationId) async {
@@ -106,6 +84,10 @@ class ChatCubit extends Cubit<ChatState> {
 
   Future<void> deleteConversation(String conversationId) async {
     await _repository.deleteConversation(conversationId);
+  }
+
+  Future<void> clearErrorState() async {
+    emit(state.copyWith(failOrSendSuccessOpt: const None()));
   }
 
   @override

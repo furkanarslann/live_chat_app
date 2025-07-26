@@ -77,6 +77,7 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Failure, Unit>> sendMessage({
     required String content,
     required String participantId,
+    required String conversationId,
   }) async {
     try {
       final currentUserId = _currentUserId;
@@ -87,11 +88,6 @@ class ChatRepositoryImpl implements ChatRepository {
         receiverId: participantId,
         content: content,
         timestamp: DateTime.now(),
-      );
-
-      final conversationId = _getConversationId(
-        currentUserId,
-        message.receiverId,
       );
 
       // Add message to Firestore
@@ -195,11 +191,6 @@ class ChatRepositoryImpl implements ChatRepository {
     } catch (e) {
       return const Left(UnexpectedFailure());
     }
-  }
-
-  String _getConversationId(String senderId, String receiverId) {
-    final ids = [senderId, receiverId]..sort();
-    return ids.join('_');
   }
 
   @override
