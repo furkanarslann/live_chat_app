@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -55,13 +57,15 @@ class AuthRepositoryImpl implements AuthRepository {
           email: email,
           firstName: firstName,
           lastName: lastName,
-          createdAt: DateTime.now(),
           lastSeen: DateTime.now(),
           isOnline: true,
           photoUrl: null,
         );
 
-        await _firestore.collection('users').doc(user.id).set(user.toJson());
+        await _firestore.collection('users').doc(user.id).set({
+          ...user.toMap(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
 
         return right(user);
       } on firebase_auth.FirebaseAuthException catch (e) {
@@ -97,7 +101,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (!userDoc.exists) return left(const InvalidCredentialsFailure());
 
-      final user = User.fromJson(userDoc.data()!);
+      final user = User.fromMap(userDoc.data()!);
 
       // Update user's online status and last seen
       await _firestore.collection('users').doc(user.id).update({
@@ -151,7 +155,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return none();
       }
 
-      return some(User.fromJson(userDoc.data()!));
+      return some(User.fromMap(userDoc.data()!));
     } catch (_) {
       return none();
     }
@@ -171,7 +175,7 @@ class AuthRepositoryImpl implements AuthRepository {
           return none();
         }
 
-        return some(User.fromJson(userDoc.data()!));
+        return some(User.fromMap(userDoc.data()!));
       } catch (_) {
         return none();
       }

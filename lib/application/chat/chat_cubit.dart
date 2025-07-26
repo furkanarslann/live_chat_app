@@ -11,16 +11,7 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription? _messagesSubscription;
 
   ChatCubit(this._repository) : super(const ChatState()) {
-    _initializeConversations();
     _watchConversations();
-    // _repository.startAutoMessages();
-  }
-
-  Future<void> _initializeConversations() async {
-    final failureOrConversations = await _repository.getConversations();
-    emit(state.copyWith(
-      failureOrConversationsOpt: Some(failureOrConversations),
-    ));
   }
 
   void _watchConversations() {
@@ -76,8 +67,7 @@ class ChatCubit extends Cubit<ChatState> {
     final message = ChatMessage(
       id: DateTime.now().toString(),
       senderId: 'currentUser',
-      receiverId:
-          participantId, // Use participant ID instead of conversation ID
+      receiverId: participantId,
       content: content,
       timestamp: DateTime.now(),
     );

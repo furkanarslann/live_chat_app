@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
@@ -26,9 +27,9 @@ class SettingsPage extends StatelessWidget {
           const SliverToBoxAdapter(
             child: Divider(height: 1),
           ),
-          _AccountSection(),
           _AppSettingsSection(),
           _HelpSection(),
+          _AccountSection(),
         ],
       ),
     );
@@ -120,31 +121,44 @@ class _AccountSection extends StatelessWidget {
       title: context.tr.account,
       items: [
         _SettingsItem(
-          icon: Icons.key,
-          iconColor: colorScheme.primary,
-          title: context.tr.privacy,
-          onTap: () {
-            //TODO(Furkan): Implement privacy settings
-          },
-        ),
-        _SettingsItem(
-          icon: Icons.chat_bubble_outline,
-          iconColor: colorScheme.primary,
-          title: context.tr.chatSettings,
-          onTap: () {
-            //TODO(Furkan): Implement chat settings
-          },
-        ),
-        _SettingsItem(
-          icon: Icons.notifications_none,
-          iconColor: colorScheme.primary,
-          title: context.tr.notifications,
-          onTap: () {
-            //TODO(Furkan): Implement notification settings
-          },
+          icon: Icons.logout,
+          iconColor: colorScheme.error,
+          title: context.tr.signOut,
+          onTap: () => _showSignOutConfirmationDialog(context),
         ),
       ],
     );
+  }
+
+  Future<void> _showSignOutConfirmationDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.tr.signOut),
+        content: Text(context.tr.signOutConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.tr.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              context.tr.signOut,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (context.mounted) {
+        context.read<AuthCubit>().signOut();
+      }
+    }
   }
 }
 
@@ -241,7 +255,6 @@ class _HelpSection extends StatelessWidget {
             //TODO(Furkan): Implement about page
           },
         ),
-        const SizedBox(height: kToolbarHeight)
       ],
     );
   }
@@ -263,12 +276,16 @@ class _SettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(Spacing.md),
+            padding: const EdgeInsets.fromLTRB(
+              Spacing.md,
+              Spacing.sm,
+              Spacing.md,
+              Spacing.sm,
+            ),
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: context.colors.textPrimary,
                     letterSpacing: 0.5,
                   ),
             ),

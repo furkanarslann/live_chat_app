@@ -1,85 +1,81 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
   final String id;
-  final String email;
   final String firstName;
   final String lastName;
-  final DateTime createdAt;
-  final DateTime lastSeen;
-  final bool isOnline;
+  final String email;
   final String? photoUrl;
+  final DateTime? lastSeen;
+  final bool isOnline;
+
+  static const String defaultPhotoUrl = 'assets/images/anon-user.png';
 
   const User({
     required this.id,
-    required this.email,
     required this.firstName,
     required this.lastName,
-    required this.createdAt,
-    required this.lastSeen,
-    required this.isOnline,
+    required this.email,
     this.photoUrl,
+    this.lastSeen,
+    this.isOnline = false,
   });
 
   String get fullName => '$firstName $lastName';
 
-  User copyWith({
-    String? id,
-    String? email,
-    String? firstName,
-    String? lastName,
-    String? photoUrl,
-    DateTime? createdAt,
-    DateTime? lastSeen,
-    bool? isOnline,
-  }) {
+  String get displayPhotoUrl => photoUrl ?? defaultPhotoUrl;
+
+  factory User.fromMap(Map<String, dynamic> map) {
+    final name = map['name'] as String?;
+    String firstName = map['firstName'] ?? '';
+    String lastName = map['lastName'] ?? '';
+
+    // Handle legacy data where only 'name' field exists
+    if (name != null && (firstName.isEmpty || lastName.isEmpty)) {
+      final nameParts = name.split(' ');
+      firstName = nameParts.first;
+      lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    }
+
+    // Handle lastSeen field which can be Timestamp, DateTime, or null
+    DateTime? lastSeen;
+    final lastSeenData = map['lastSeen'];
+    if (lastSeenData != null) {
+      if (lastSeenData is Timestamp) {
+        lastSeen = lastSeenData.toDate();
+      } else if (lastSeenData is DateTime) {
+        lastSeen = lastSeenData;
+      } else if (lastSeenData is String) {
+        lastSeen = DateTime.tryParse(lastSeenData);
+      }
+    }
+
     return User(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      photoUrl: photoUrl ?? this.photoUrl,
-      createdAt: createdAt ?? this.createdAt,
-      lastSeen: lastSeen ?? this.lastSeen,
-      isOnline: isOnline ?? this.isOnline,
+      id: map['id'],
+      firstName: firstName,
+      lastName: lastName,
+      email: map['email'] ?? '',
+      photoUrl: map['photoUrl'],
+      lastSeen: lastSeen,
+      isOnline: map['isOnline'] ?? false,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'email': email,
       'firstName': firstName,
       'lastName': lastName,
+      'email': email,
       'photoUrl': photoUrl,
-      'createdAt': createdAt.toIso8601String(),
-      'lastSeen': lastSeen.toIso8601String(),
+      'lastSeen': lastSeen != null ? Timestamp.fromDate(lastSeen!) : null,
       'isOnline': isOnline,
     };
   }
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
-      photoUrl: json['photoUrl'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      lastSeen: DateTime.parse(json['lastSeen'] as String),
-      isOnline: json['isOnline'] as bool,
-    );
-  }
-
   @override
-  List<Object?> get props => [
-        id,
-        email,
-        firstName,
-        lastName,
-        photoUrl,
-        createdAt,
-        lastSeen,
-        isOnline,
-      ];
+  List<Object?> get props {
+    return [id, firstName, lastName, email, photoUrl, lastSeen, isOnline];
+  }
 }

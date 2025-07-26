@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class ChatMessage extends Equatable {
@@ -17,9 +18,25 @@ class ChatMessage extends Equatable {
     this.isRead = false,
   });
 
-  @override
-  List<Object?> get props {
-    return [id, senderId, receiverId, content, timestamp, isRead];
+  factory ChatMessage.fromMap(Map<String, dynamic> map, {String? id}) {
+    return ChatMessage(
+      id: id ?? map['id'] ?? '',
+      senderId: map['senderId'] ?? '',
+      receiverId: map['receiverId'] ?? '',
+      content: map['content'] ?? '',
+      timestamp: (map['timestamp'] as Timestamp).toDate(),
+      isRead: map['isRead'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'senderId': senderId,
+      'receiverId': receiverId,
+      'content': content,
+      'timestamp': Timestamp.fromDate(timestamp),
+      'isRead': isRead,
+    };
   }
 
   ChatMessage copyWith({
@@ -39,4 +56,7 @@ class ChatMessage extends Equatable {
       isRead: isRead ?? this.isRead,
     );
   }
+
+  @override
+  List<Object?> get props => [id, senderId, receiverId, content, timestamp, isRead];
 }

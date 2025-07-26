@@ -79,5 +79,8 @@
   "invalidCredentials": "E-Mail oder Passwort ist falsch",
   "emailAlreadyInUse": "Diese E-Mail ist bereits registriert",
   "passwordTooWeak": "Das Passwort ist zu schwach. Bitte wählen Sie ein stärkeres Passwort",
-  "unknownError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  "unknownError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+  "signOut": "Abmelden",
+  "signOutConfirmation": "Möchten Sie sich wirklich abmelden?",
+  "cancel": "Abbrechen"
 }

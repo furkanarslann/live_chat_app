@@ -202,5 +202,17 @@
   "invalidCredentials": "Email or password is incorrect",
   "emailAlreadyInUse": "This email is already registered",
   "passwordTooWeak": "Password is too weak. Please use a stronger password",
-  "unknownError": "An error occurred. Please try again."
+  "unknownError": "An error occurred. Please try again.",
+  "signOut": "Sign Out",
+  "@signOut": {
+    "description": "Text for sign out button and dialog title"
+  },
+  "signOutConfirmation": "Are you sure you want to sign out?",
+  "@signOutConfirmation": {
+    "description": "Confirmation message shown before signing out"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Text for cancel button in dialogs"
+  }
 }
