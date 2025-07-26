@@ -106,9 +106,9 @@ class _RegisterPageState extends State<RegisterPage> {
         ],
       ),
       body: BlocListener<AuthCubit, AuthState>(
-        listenWhen: (previous, current) => 
-          previous.status != current.status || 
-          previous.failureOption != current.failureOption,
+        listenWhen: (previous, current) =>
+            previous.status != current.status ||
+            previous.failureOption != current.failureOption,
         listener: (context, state) {
           // Handle failures
           state.failureOption.fold(
@@ -127,7 +127,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 UnexpectedFailure() => context.tr.unknownError,
                 _ => context.tr.unknownError,
               };
-              
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
