@@ -29,7 +29,7 @@ class LanguageSettingsPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               for (final locale in LanguageCubit.supportedLocales) ...[
-                if (locale != LanguageCubit.supportedLocales.first) 
+                if (locale != LanguageCubit.supportedLocales.first)
                   const SizedBox(height: 16),
                 _LanguageOption(
                   title: _getLanguageName(context, locale.languageCode),

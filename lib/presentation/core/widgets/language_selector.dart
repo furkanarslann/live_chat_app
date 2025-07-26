@@ -10,7 +10,7 @@ class LanguageSelector extends StatelessWidget {
     return BlocBuilder<LanguageCubit, Locale>(
       builder: (context, currentLocale) {
         final languageCubit = context.read<LanguageCubit>();
-        
+
         return PopupMenuButton<Locale>(
           initialValue: currentLocale,
           onSelected: (Locale locale) {
@@ -47,4 +47,4 @@ class LanguageSelector extends StatelessWidget {
       },
     );
   }
-} 
+}

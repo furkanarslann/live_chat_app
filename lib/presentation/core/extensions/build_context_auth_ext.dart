@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 
-extension AuthExtension on BuildContext {
+extension BuildContextAuthX on BuildContext {
   /// Checks if the user is authenticated.
   bool get isAuthenticated {
     final authCubit = read<AuthCubit>();

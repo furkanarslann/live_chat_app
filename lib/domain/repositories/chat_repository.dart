@@ -13,9 +13,4 @@ abstract class ChatRepository {
     String conversationId,
   );
   Stream<Either<Failure, List<ChatConversation>>> watchConversations();
-
-  // Auto message simulation methods
-  void startAutoMessages();
-  void stopAutoMessages();
-  void dispose();
 }

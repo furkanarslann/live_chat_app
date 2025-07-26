@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/auth/auth_state.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
@@ -687,73 +689,83 @@ class _ConversationTileContent extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: Spacing.xxs),
-                  Row(
-                    children: [
-                      if (conversation.lastMessage?.senderId == 'currentUser')
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Icon(
-                            conversation.lastMessage!.isRead
-                                ? Icons.done_all
-                                : Icons.done,
-                            size: 16,
-                            color: conversation.lastMessage!.isRead
-                                ? colorScheme.primary
-                                : colorScheme.onSurface.withValues(alpha: 0.4),
-                          ),
-                        ),
-                      Expanded(
-                        child: Text(
-                          conversation.lastMessage?.content ?? '',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: conversation.unreadCount > 0
-                                ? colorScheme.onSurface.withValues(alpha: 0.9)
-                                : colorScheme.onSurface.withValues(alpha: 0.6),
-                            fontWeight: conversation.unreadCount > 0
-                                ? FontWeight.w500
-                                : null,
-                            letterSpacing: 0.2,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (conversation.unreadCount > 0)
-                        Container(
-                          margin: const EdgeInsets.only(
-                            left: Spacing.sm,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: Spacing.xs + 2,
-                            vertical: Spacing.xxs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    colorScheme.primary.withValues(alpha: 0.25),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                  BlocBuilder<AuthCubit, AuthState>(
+                    buildWhen: (_, current) => current.isAuthenticated,
+                    builder: (context, state) {
+                      return Row(
+                        children: [
+                          if (conversation.lastMessage?.senderId ==
+                              state.user?.id) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                conversation.lastMessage!.isRead
+                                    ? Icons.done_all
+                                    : Icons.done,
+                                size: 16,
+                                color: conversation.lastMessage!.isRead
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface
+                                        .withValues(alpha: 0.4),
                               ),
-                            ],
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 24,
-                            minHeight: 20,
-                          ),
-                          child: Text(
-                            conversation.unreadCount.toString(),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
                             ),
-                            textAlign: TextAlign.center,
+                          ],
+                          Expanded(
+                            child: Text(
+                              conversation.lastMessage?.content ?? '',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: conversation.unreadCount > 0
+                                    ? colorScheme.onSurface
+                                        .withValues(alpha: 0.9)
+                                    : colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
+                                fontWeight: conversation.unreadCount > 0
+                                    ? FontWeight.w500
+                                    : null,
+                                letterSpacing: 0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                    ],
+                          if (conversation.unreadCount > 0)
+                            Container(
+                              margin: const EdgeInsets.only(
+                                left: Spacing.sm,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Spacing.xs + 2,
+                                vertical: Spacing.xxs,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 24,
+                                minHeight: 20,
+                              ),
+                              child: Text(
+                                conversation.unreadCount.toString(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
