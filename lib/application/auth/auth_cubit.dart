@@ -20,11 +20,9 @@ class AuthCubit extends Cubit<AuthState> {
     required SharedPreferences prefs,
   })  : _authRepository = authRepository,
         _prefs = prefs,
-        super(const AuthState()) {
-    _init();
-  }
+        super(const AuthState());
 
-  Future<void> _init() async {
+  Future<void> init() async {
     // Listen to auth state changes
     _authStateSubscription =
         _authRepository.authStateChanges.listen((userOption) {

@@ -31,7 +31,7 @@ Future<void> setupDependencies() async {
       firestore: getIt<FirebaseFirestore>(),
     ),
   );
-
+  
   getIt.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(),
   );
@@ -43,10 +43,16 @@ Future<void> setupDependencies() async {
       prefs: getIt<SharedPreferences>(),
     ),
   );
-
+  
   getIt.registerFactory<ChatCubit>(
     () => ChatCubit(getIt<ChatRepository>()),
   );
-  getIt.registerFactory<ThemeCubit>(() => ThemeCubit());
-  getIt.registerFactory<LanguageCubit>(() => LanguageCubit());
+
+  getIt.registerFactory<ThemeCubit>(
+    () => ThemeCubit(prefs: getIt<SharedPreferences>()),
+  );
+
+  getIt.registerFactory<LanguageCubit>(
+    () => LanguageCubit(prefs: getIt<SharedPreferences>()),
+  );
 }

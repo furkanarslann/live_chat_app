@@ -188,5 +188,15 @@
   "pleaseConfirmPassword": "Please confirm your password",
   "passwordsDoNotMatch": "Passwords do not match",
   "passwordRequirements": "Password must be at least 8 characters long and contain uppercase, lowercase, number and special character",
-  "alreadyHaveAccount": "Already have an account?"
+  "alreadyHaveAccount": "Already have an account?",
+  "themeSettings": "Theme Settings",
+  "systemTheme": "System",
+  "systemThemeDescription": "Follow system theme",
+  "lightTheme": "Light",
+  "lightThemeDescription": "Light theme",
+  "darkTheme": "Dark",
+  "darkThemeDescription": "Dark theme",
+  "languageSettings": "Language Settings",
+  "english": "English",
+  "german": "Deutsch"
 }

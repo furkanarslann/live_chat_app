@@ -6,6 +6,7 @@ import 'package:live_chat_app/presentation/core/extensions/build_context_transla
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_button.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_text_field.dart';
+import 'package:live_chat_app/presentation/core/widgets/language_selector.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -69,6 +70,12 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Add language selector at the top
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: LanguageSelector(),
+                    ),
+                    const SizedBox(height: 32),
                     Icon(
                       Icons.bolt,
                       size: 80,

@@ -1,131 +1,131 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
-import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 
 class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});
+
+  String _getLanguageName(BuildContext context, String languageCode) {
+    switch (languageCode) {
+      case 'en':
+        return context.tr.english;
+      case 'de':
+        return context.tr.german;
+      default:
+        return languageCode;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.tr.languageSettings),
+      ),
+      body: BlocBuilder<LanguageCubit, Locale>(
+        builder: (context, currentLocale) {
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              for (final locale in LanguageCubit.supportedLocales) ...[
+                if (locale != LanguageCubit.supportedLocales.first) 
+                  const SizedBox(height: 16),
+                _LanguageOption(
+                  title: _getLanguageName(context, locale.languageCode),
+                  languageCode: locale.languageCode,
+                  isSelected: currentLocale.languageCode == locale.languageCode,
+                  onTap: () {
+                    context.read<LanguageCubit>().setLocale(locale);
+                  },
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  final String title;
+  final String languageCode;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageOption({
+    required this.title,
+    required this.languageCode,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr.language),
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(Spacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr.language,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: Spacing.md),
-                  _buildLanguageOption(
-                    context: context,
-                    title: 'English',
-                    languageCode: 'en',
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  _buildLanguageOption(
-                    context: context,
-                    title: 'Deutsch',
-                    languageCode: 'de',
-                  ),
-                ],
-              ),
+    return Material(
+      color: isSelected
+          ? colorScheme.primary.withValues(alpha: 0.1)
+          : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outline.withValues(alpha: 0.5),
             ),
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption({
-    required BuildContext context,
-    required String title,
-    required String languageCode,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isSelected = context.select(
-      (LanguageCubit cubit) => cubit.state.languageCode == languageCode,
-    );
-
-    return InkWell(
-      onTap: () => context.read<LanguageCubit>().setLanguage(languageCode),
-      borderRadius: BorderRadius.circular(16),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(Spacing.md),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primary.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : theme.dividerColor.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(Spacing.sm),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.1)
-                    : theme.cardColor.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                languageCode.toUpperCase(),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color:
-                      isSelected ? colorScheme.primary : colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? colorScheme.primary.withValues(alpha: 0.1)
+                      : colorScheme.surface,
+                  border: Border.all(
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  languageCode.toUpperCase(),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: Spacing.md),
-            Expanded(
-              child: Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color:
-                      isSelected ? colorScheme.primary : colorScheme.onSurface,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.bold : null,
+                  ),
                 ),
               ),
-            ),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: colorScheme.primary,
-                size: 24,
-              ),
-          ],
+              if (isSelected)
+                Icon(
+                  Icons.check_circle,
+                  color: colorScheme.primary,
+                ),
+            ],
+          ),
         ),
       ),
     );

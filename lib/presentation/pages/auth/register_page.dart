@@ -7,6 +7,7 @@ import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_button.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_text_field.dart';
 import 'package:live_chat_app/presentation/core/widgets/password_requirements.dart';
+import 'package:live_chat_app/presentation/core/widgets/language_selector.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -98,6 +99,9 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.tr.createAccount),
+        actions: const [
+          LanguageSelector(),
+        ],
       ),
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {

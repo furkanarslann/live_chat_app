@@ -48,21 +48,10 @@ class _SplashPageState extends State<SplashPage>
     // Start the animation
     _controller.forward();
 
-    // Check auth state after animation
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        final authState = context.read<AuthCubit>().state;
-        switch (authState.status) {
-          case AuthStatus.authenticated:
-            Navigator.of(context).pushReplacementNamed(AppRouter.home);
-            break;
-          case AuthStatus.unauthenticated:
-            Navigator.of(context).pushReplacementNamed(AppRouter.login);
-            break;
-          default:
-            break;
-        }
-      }
+    // Initialize the AuthCubit when the splash screen is shown.
+    final authCubit = context.read<AuthCubit>();
+    Future.delayed(const Duration(milliseconds: 600)).then((_) {
+      authCubit.init();
     });
   }
 
@@ -76,44 +65,65 @@ class _SplashPageState extends State<SplashPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _scaleAnimation.value,
-                  child: Opacity(
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        switch (state.status) {
+          case AuthStatus.authenticated:
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRouter.home,
+              (route) => false,
+            );
+            break;
+          case AuthStatus.unauthenticated:
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRouter.login,
+              (route) => false,
+            );
+            break;
+          default:
+            break;
+        }
+      },
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scaleAnimation.value,
+                    child: Opacity(
+                      opacity: _opacityAnimation.value,
+                      child: Icon(
+                        Icons.bolt,
+                        size: 80,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Opacity(
                     opacity: _opacityAnimation.value,
-                    child: Icon(
-                      Icons.bolt,
-                      size: 80,
-                      color: theme.colorScheme.primary,
+                    child: Text(
+                      'Live Chat',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _opacityAnimation.value,
-                  child: Text(
-                    'Live Chat',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

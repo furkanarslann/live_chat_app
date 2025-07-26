@@ -109,18 +109,18 @@ class _RequirementTile extends StatelessWidget {
               size: 16,
               color: isMet
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.error.withOpacity(0.5),
+                  : theme.colorScheme.error.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(width: 8),
           Text(
             title,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(0.8),
+              color: theme.colorScheme.onBackground.withValues(alpha: 0.8),
             ),
           ),
         ],
       ),
     );
   }
-} 
+}

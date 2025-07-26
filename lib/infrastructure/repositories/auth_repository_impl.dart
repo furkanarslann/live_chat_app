@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -37,6 +35,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Create the user with email and password
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
+        // Firebase Auth validates this against its secure storage
         password: password,
       );
 
@@ -65,10 +64,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return right(user);
     } on firebase_auth.FirebaseAuthException catch (e) {
-      log('FirebaseAuthException: ${e.code}', error: e);
       return left(AuthFailure(e.message ?? 'Authentication failed'));
     } catch (e) {
-      log('Unexpected error: $e', error: e);
       return left(UnexpectedFailure(e.toString()));
     }
   }
