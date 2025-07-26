@@ -75,5 +75,9 @@
   "darkThemeDescription": "Dunkles Design",
   "languageSettings": "Spracheinstellungen",
   "english": "Englisch",
-  "german": "Deutsch"
+  "german": "Deutsch",
+  "invalidCredentials": "E-Mail oder Passwort ist falsch",
+  "emailAlreadyInUse": "Diese E-Mail ist bereits registriert",
+  "passwordTooWeak": "Das Passwort ist zu schwach. Bitte wählen Sie ein stärkeres Passwort",
+  "unknownError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
 }

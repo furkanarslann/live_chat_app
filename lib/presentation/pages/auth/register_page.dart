@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
+import 'package:live_chat_app/domain/core/failures.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_button.dart';
@@ -104,13 +106,31 @@ class _RegisterPageState extends State<RegisterPage> {
         ],
       ),
       body: BlocListener<AuthCubit, AuthState>(
+        listenWhen: (previous, current) => 
+          previous.status != current.status || 
+          previous.failureOption != current.failureOption,
         listener: (context, state) {
+          // Handle failures
           state.failureOption.fold(
-            () => null,
+            () {
+              // If no failure and authenticated, navigate to home
+              if (state.status == AuthStatus.authenticated) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRouter.home,
+                  (route) => false,
+                );
+              }
+            },
             (failure) {
+              final message = switch (failure) {
+                EmailAlreadyInUseFailure() => context.tr.emailAlreadyInUse,
+                UnexpectedFailure() => context.tr.unknownError,
+                _ => context.tr.unknownError,
+              };
+              
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(failure.message),
+                  content: Text(message),
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
               );
@@ -127,12 +147,22 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      context.tr.joinUs,
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.bolt,
+                          size: 40,
+                          color: context.colors.primary,
+                        ),
+                        Text(
+                          context.tr.joinUs,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Text(

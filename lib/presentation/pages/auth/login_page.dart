@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
+import 'package:live_chat_app/domain/core/failures.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_button.dart';
@@ -47,13 +48,30 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<AuthCubit, AuthState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status ||
+            previous.failureOption != current.failureOption,
         listener: (context, state) {
           state.failureOption.fold(
-            () => null,
+            () {
+              // If no failure and authenticated, navigate to home
+              if (state.status == AuthStatus.authenticated) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRouter.home,
+                  (route) => false,
+                );
+              }
+            },
             (failure) {
+              final message = switch (failure) {
+                InvalidCredentialsFailure() => context.tr.invalidCredentials,
+                UnexpectedFailure() => context.tr.unknownError,
+                _ => context.tr.unknownError,
+              };
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(failure.message),
+                  content: Text(message),
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
               );

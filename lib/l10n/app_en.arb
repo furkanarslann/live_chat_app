@@ -198,5 +198,9 @@
   "darkThemeDescription": "Dark theme",
   "languageSettings": "Language Settings",
   "english": "English",
-  "german": "Deutsch"
+  "german": "Deutsch",
+  "invalidCredentials": "Email or password is incorrect",
+  "emailAlreadyInUse": "This email is already registered",
+  "passwordTooWeak": "Password is too weak. Please use a stronger password",
+  "unknownError": "An error occurred. Please try again."
 }

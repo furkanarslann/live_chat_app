@@ -12,7 +12,6 @@ class AuthCubit extends Cubit<AuthState> {
   final SharedPreferences _prefs;
   StreamSubscription<Option<User>>? _authStateSubscription;
 
-  static const String _isLoggedInKey = 'isLoggedIn';
   static const String _userIdKey = 'userId';
 
   AuthCubit({
@@ -23,43 +22,93 @@ class AuthCubit extends Cubit<AuthState> {
         super(const AuthState());
 
   Future<void> init() async {
-    // Listen to auth state changes
+    final userId = _prefs.getString(_userIdKey);
+
+    if (userId == null) {
+      // If no saved session in SharedPreferences, ensure Firebase is signed out
+      await _authRepository.signOut();
+      emit(state.copyWith(status: AuthStatus.unauthenticated));
+      return;
+    }
+
+    // Only if we have a valid userId in SharedPreferences, check Firebase
+    final result = await _authRepository.getCurrentUser();
+    result.fold(
+      () {
+        // No user found or error, clear preferences and ensure signed out
+        _prefs.remove(_userIdKey);
+        _authRepository.signOut();
+        emit(state.copyWith(
+          status: AuthStatus.unauthenticated,
+          user: null,
+        ));
+      },
+      (user) => emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user,
+      )),
+    );
+
+    // Listen to auth state changes only after initial setup
     _authStateSubscription =
         _authRepository.authStateChanges.listen((userOption) {
       userOption.fold(
-        () => emit(state.copyWith(
-          status: AuthStatus.unauthenticated,
-          user: null,
-        )),
-        (user) => emit(state.copyWith(
-          status: AuthStatus.authenticated,
-          user: user,
-        )),
-      );
-    });
-
-    // Check if user was previously logged in
-    final isLoggedIn = _prefs.getBool(_isLoggedInKey) ?? false;
-    if (isLoggedIn) {
-      final result = await _authRepository.getCurrentUser();
-      result.fold(
         () {
-          // No user found, clear preferences
-          _prefs.remove(_isLoggedInKey);
+          // Clear preferences when user is logged out
           _prefs.remove(_userIdKey);
           emit(state.copyWith(
             status: AuthStatus.unauthenticated,
             user: null,
           ));
         },
-        (user) => emit(state.copyWith(
+        (user) {
+          // Only update if we have a valid session in SharedPreferences
+          if (_prefs.getString(_userIdKey) != null) {
+            emit(state.copyWith(
+              status: AuthStatus.authenticated,
+              user: user,
+            ));
+          } else {
+            // If no valid session in SharedPreferences, sign out from Firebase
+            _authRepository.signOut();
+          }
+        },
+      );
+    });
+  }
+
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
+    emit(state.copyWith(
+      isSubmitting: true,
+      failureOption: none(),
+    ));
+
+    final result = await _authRepository.login(
+      email: email,
+      password: password,
+    );
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        status: AuthStatus.failure,
+        isSubmitting: false,
+        failureOption: some(failure),
+      )),
+      (user) {
+        // Save user ID
+        _prefs.setString(_userIdKey, user.id);
+
+        emit(state.copyWith(
           status: AuthStatus.authenticated,
           user: user,
-        )),
-      );
-    } else {
-      emit(state.copyWith(status: AuthStatus.unauthenticated));
-    }
+          isSubmitting: false,
+          failureOption: none(),
+        ));
+      },
+    );
   }
 
   Future<void> register({
@@ -85,43 +134,7 @@ class AuthCubit extends Cubit<AuthState> {
         failureOption: some(failure),
       )),
       (user) {
-        // Save login state
-        _prefs.setBool(_isLoggedInKey, true);
-        _prefs.setString(_userIdKey, user.id);
-
-        emit(state.copyWith(
-          status: AuthStatus.authenticated,
-          user: user,
-          isSubmitting: false,
-          failureOption: none(),
-        ));
-      },
-    );
-  }
-
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
-    emit(state.copyWith(
-      isSubmitting: true,
-      failureOption: none(),
-    ));
-
-    final result = await _authRepository.login(
-      email: email,
-      password: password,
-    );
-
-    result.fold(
-      (failure) => emit(state.copyWith(
-        status: AuthStatus.failure,
-        isSubmitting: false,
-        failureOption: some(failure),
-      )),
-      (user) {
-        // Save login state
-        _prefs.setBool(_isLoggedInKey, true);
+        // Save user ID
         _prefs.setString(_userIdKey, user.id);
 
         emit(state.copyWith(
@@ -135,31 +148,18 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signOut() async {
+    emit(state.copyWith(isSubmitting: true));
+
+    await _authRepository.signOut();
+
+    // Clear user ID
+    _prefs.remove(_userIdKey);
+
     emit(state.copyWith(
-      isSubmitting: true,
-      failureOption: none(),
+      status: AuthStatus.unauthenticated,
+      user: null,
+      isSubmitting: false,
     ));
-
-    final result = await _authRepository.signOut();
-
-    result.fold(
-      (failure) => emit(state.copyWith(
-        isSubmitting: false,
-        failureOption: some(failure),
-      )),
-      (_) {
-        // Clear login state
-        _prefs.remove(_isLoggedInKey);
-        _prefs.remove(_userIdKey);
-
-        emit(state.copyWith(
-          status: AuthStatus.unauthenticated,
-          user: null,
-          isSubmitting: false,
-          failureOption: none(),
-        ));
-      },
-    );
   }
 
   @override

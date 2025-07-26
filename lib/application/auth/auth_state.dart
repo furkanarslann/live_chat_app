@@ -23,7 +23,8 @@ class AuthState extends Equatable {
     this.failureOption = const None(),
   });
 
-  bool get isAuthenticated => status == AuthStatus.authenticated && user != null;
+  bool get isAuthenticated =>
+      status == AuthStatus.authenticated && user != null;
 
   AuthState copyWith({
     AuthStatus? status,
@@ -41,4 +42,4 @@ class AuthState extends Equatable {
 
   @override
   List<Object?> get props => [status, user, isSubmitting, failureOption];
-} 
+}

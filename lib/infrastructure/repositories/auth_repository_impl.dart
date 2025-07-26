@@ -33,40 +33,45 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Create the user with email and password
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        // Firebase Auth validates this against its secure storage
-        password: password,
-      );
+      try {
+        final userCredential =
+            await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      if (userCredential.user == null) {
-        return left(const UnexpectedFailure('Failed to create user'));
+        if (userCredential.user == null) {
+          return left(const UnexpectedFailure());
+        }
+
+        // Split name into first and last name
+        final names = name.trim().split(' ');
+        final firstName = names.first;
+        final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+
+        // Create user document in Firestore
+        final user = User(
+          id: userCredential.user!.uid,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          createdAt: DateTime.now(),
+          lastSeen: DateTime.now(),
+          isOnline: true,
+          photoUrl: null,
+        );
+
+        await _firestore.collection('users').doc(user.id).set(user.toJson());
+
+        return right(user);
+      } on firebase_auth.FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          return left(const EmailAlreadyInUseFailure());
+        }
+        return left(const UnexpectedFailure());
       }
-
-      // Split name into first and last name
-      final names = name.trim().split(' ');
-      final firstName = names.first;
-      final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
-
-      // Create user document in Firestore
-      final user = User(
-        id: userCredential.user!.uid,
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        createdAt: DateTime.now(),
-        lastSeen: DateTime.now(),
-        isOnline: true,
-        photoUrl: null,
-      );
-
-      await _firestore.collection('users').doc(user.id).set(user.toJson());
-
-      return right(user);
-    } on firebase_auth.FirebaseAuthException catch (e) {
-      return left(AuthFailure(e.message ?? 'Authentication failed'));
     } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(const UnexpectedFailure());
     }
   }
 
@@ -82,7 +87,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       if (userCredential.user == null) {
-        return left(const UnexpectedFailure('Failed to sign in'));
+        return left(const UnexpectedFailure());
       }
 
       final userDoc = await _firestore
@@ -90,9 +95,7 @@ class AuthRepositoryImpl implements AuthRepository {
           .doc(userCredential.user!.uid)
           .get();
 
-      if (!userDoc.exists) {
-        return left(const UserNotFoundFailure());
-      }
+      if (!userDoc.exists) return left(const InvalidCredentialsFailure());
 
       final user = User.fromJson(userDoc.data()!);
 
@@ -104,16 +107,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return right(user);
     } on firebase_auth.FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'user-not-found':
-          return left(const UserNotFoundFailure());
-        case 'wrong-password':
-          return left(const WrongPasswordFailure());
-        default:
-          return left(AuthFailure(e.message ?? 'Authentication failed'));
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-email' ||
+          e.code == 'invalid-credential') {
+        return left(const InvalidCredentialsFailure());
       }
-    } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(const UnexpectedFailure());
+    } catch (_) {
+      return left(const UnexpectedFailure());
     }
   }
 
@@ -132,7 +134,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _firebaseAuth.signOut();
       return right(unit);
     } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(const UnexpectedFailure());
     }
   }
 
