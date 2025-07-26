@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
       listenWhen: (previous, current) =>
-          previous.status != current.status ||
+          previous.status == AuthStatus.authenticated &&
           current.status == AuthStatus.unauthenticated,
       listener: (context, state) {
         if (state.status == AuthStatus.unauthenticated) {
