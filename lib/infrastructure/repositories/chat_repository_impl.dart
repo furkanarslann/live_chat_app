@@ -1,101 +1,50 @@
 import 'dart:async';
-import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dartz/dartz.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
 import 'package:live_chat_app/domain/models/chat_conversation.dart';
 import 'package:live_chat_app/domain/models/chat_message.dart';
 import 'package:live_chat_app/domain/repositories/chat_repository.dart';
-import 'package:live_chat_app/infrastructure/core/json_data_reader.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
-  List<ChatConversation> _conversations = [];
-  Map<String, List<ChatMessage>> _messages = {};
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
-  final _conversationsController =
-      StreamController<List<ChatConversation>>.broadcast();
-  final _messagesControllers = <String, StreamController<List<ChatMessage>>>{};
+  ChatRepositoryImpl({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
 
-  // Random message content for simulation
-  final List<String> _randomMessages = [
-    'Hey there!',
-    'How\'s your day going?',
-    'Did you see the news?',
-    'What are you up to?',
-    'I was thinking about our last conversation...',
-    'Can we meet up soon?',
-    'That\'s interesting!',
-    'I agree with you',
-    'Not sure about that',
-    'Let me check and get back to you',
-  ];
+  // Collection references
+  CollectionReference get _conversationsRef =>
+      _firestore.collection('conversations');
 
-  Timer? _autoMessageTimer;
+  CollectionReference get _messagesRef => _firestore.collection('messages');
 
-  ChatRepositoryImpl() {
-    _initializeData();
-  }
-
-  Future<void> _initializeData() async {
-    try {
-      _conversations = await JsonDataReader.loadConversations();
-      _messages = await JsonDataReader.loadMessages();
-      _conversationsController.add(_conversations);
-    } catch (e) {
-      // Handle initialization error
-      print('Error initializing chat data: $e');
-    }
-  }
-
-  ChatMessage _generateRandomMessage(String senderId, String receiverId) {
-    final random = Random();
-    final content = _randomMessages[random.nextInt(_randomMessages.length)];
-
-    return ChatMessage(
-      id: 'auto_${DateTime.now().millisecondsSinceEpoch}_${random.nextInt(1000)}',
-      senderId: senderId,
-      receiverId: receiverId,
-      content: content,
-      timestamp: DateTime.now(),
-    );
-  }
-
-  @override
-  void startAutoMessages() {
-    _autoMessageTimer?.cancel();
-    _autoMessageTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      for (var i = 0; i < _conversations.length; i++) {
-        if (i % 2 == 0) continue; // Skip even indexed conversations
-
-        final conversation = _conversations[i];
-        final message = _generateRandomMessage(
-          conversation.participantId,
-          'currentUser',
-        );
-
-        sendMessage(message);
-      }
-    });
-  }
-
-  @override
-  void stopAutoMessages() {
-    _autoMessageTimer?.cancel();
-    _autoMessageTimer = null;
-  }
-
-  @override
-  void dispose() {
-    stopAutoMessages();
-    _conversationsController.close();
-    for (final controller in _messagesControllers.values) {
-      controller.close();
-    }
+  // Get current user ID or throw error if not authenticated
+  String get _currentUserId {
+    final user = _auth.currentUser;
+    if (user == null) throw const UnexpectedFailure();
+    return user.uid;
   }
 
   @override
   Future<Either<Failure, List<ChatConversation>>> getConversations() async {
     try {
-      return Right(_conversations);
+      final snapshot = await _conversationsRef
+          .where('participants', arrayContains: _currentUserId)
+          .get();
+
+      final conversations = snapshot.docs
+          .map((doc) => ChatConversation.fromMap(
+                doc.data() as Map<String, dynamic>,
+                id: doc.id,
+              ))
+          .toList();
+
+      return Right(conversations);
     } catch (e) {
       return const Left(UnexpectedFailure());
     }
@@ -105,7 +54,18 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Failure, List<ChatMessage>>> getMessages(
       String conversationId) async {
     try {
-      final messages = _messages[conversationId] ?? [];
+      final snapshot = await _messagesRef
+          .where('conversationId', isEqualTo: conversationId)
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      final messages = snapshot.docs
+          .map((doc) => ChatMessage.fromMap(
+                doc.data() as Map<String, dynamic>,
+                id: doc.id,
+              ))
+          .toList();
+
       return Right(messages);
     } catch (e) {
       return const Left(UnexpectedFailure());
@@ -115,35 +75,31 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Either<Failure, Unit>> sendMessage(ChatMessage message) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
+      final currentUserId = _currentUserId;
 
-      // Find the conversation by matching participant ID with sender or receiver
-      final conversation = _conversations.firstWhere(
-        (conv) =>
-            conv.participantId == message.receiverId ||
-            conv.participantId == message.senderId,
-      );
-
-      final conversationId = conversation.id;
-      _messages[conversationId] = [...?_messages[conversationId], message];
-
-      // Update last message in conversation
-      final conversationIndex =
-          _conversations.indexWhere((conv) => conv.id == conversationId);
-      if (conversationIndex != -1) {
-        _conversations[conversationIndex] =
-            _conversations[conversationIndex].copyWith(
-          lastMessage: message,
-          unreadCount: message.senderId == 'currentUser'
-              ? 0
-              : _conversations[conversationIndex].unreadCount + 1,
-        );
+      // Validate that the message is from the current user
+      if (message.senderId != currentUserId) {
+        return const Left(UnexpectedFailure());
       }
 
-      // Notify listeners
-      _conversationsController.add(_conversations);
-      _messagesControllers[conversationId]
-          ?.add(_messages[conversationId] ?? []);
+      // Add message to Firestore
+      final messageRef = await _messagesRef.add({
+        ...message.toMap(),
+        'conversationId': _getConversationId(currentUserId, message.receiverId),
+      });
+
+      // Update conversation's last message
+      final conversationId =
+          _getConversationId(currentUserId, message.receiverId);
+      await _conversationsRef.doc(conversationId).update({
+        'lastMessage': {
+          ...message.toMap(),
+          'id': messageRef.id,
+        },
+        'unreadCount': FieldValue.increment(
+          message.senderId == currentUserId ? 0 : 1,
+        ),
+      });
 
       return const Right(unit);
     } catch (e) {
@@ -154,32 +110,7 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      for (final entry in _messages.entries) {
-        final messageIndex =
-            entry.value.indexWhere((msg) => msg.id == messageId);
-        if (messageIndex != -1) {
-          final message = entry.value[messageIndex];
-          entry.value[messageIndex] = message.copyWith(isRead: true);
-
-          // Update conversation unread count
-          final conversationIndex =
-              _conversations.indexWhere((conv) => conv.id == entry.key);
-          if (conversationIndex != -1) {
-            _conversations[conversationIndex] =
-                _conversations[conversationIndex].copyWith(
-              unreadCount: _conversations[conversationIndex].unreadCount - 1,
-            );
-          }
-
-          // Notify listeners
-          _conversationsController.add(_conversations);
-          _messagesControllers[entry.key]?.add(entry.value);
-          break;
-        }
-      }
-
+      await _messagesRef.doc(messageId).update({'isRead': true});
       return const Right(unit);
     } catch (e) {
       return const Left(UnexpectedFailure());
@@ -189,65 +120,93 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Stream<Either<Failure, List<ChatMessage>>> watchMessages(
       String conversationId) {
-    _messagesControllers[conversationId] ??=
-        StreamController<List<ChatMessage>>.broadcast();
-
-    // Emit initial data immediately
-    Future.microtask(() {
-      final messages = _messages[conversationId] ?? [];
-      _messagesControllers[conversationId]?.add(messages);
-    });
-
-    return _messagesControllers[conversationId]!.stream.map((messages) {
-      return Right(messages);
+    return _messagesRef
+        .where('conversationId', isEqualTo: conversationId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      try {
+        final messages = snapshot.docs
+            .map((doc) => ChatMessage.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  id: doc.id,
+                ))
+            .toList();
+        return Right(messages);
+      } catch (e) {
+        return const Left(UnexpectedFailure());
+      }
     });
   }
 
   @override
   Stream<Either<Failure, List<ChatConversation>>> watchConversations() {
-    // Emit initial data immediately
-    Future.microtask(() {
-      _conversationsController.add(_conversations);
-    });
-
-    return _conversationsController.stream.map((conversations) {
-      return Right(conversations);
-    });
+    try {
+      final currentUserId = _currentUserId;
+      return _conversationsRef
+          .where('participants', arrayContains: currentUserId)
+          .snapshots()
+          .map((snapshot) {
+        try {
+          final conversations = snapshot.docs
+              .map((doc) => ChatConversation.fromMap(
+                    doc.data() as Map<String, dynamic>,
+                    id: doc.id,
+                  ))
+              .toList();
+          return Right(conversations);
+        } catch (e) {
+          return const Left(UnexpectedFailure());
+        }
+      });
+    } catch (e) {
+      return Stream.value(const Left(UnexpectedFailure()));
+    }
   }
 
   @override
   Future<Either<Failure, Unit>> clearChatHistory(String conversationId) async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Delete all messages in the conversation
+      final messagesSnapshot = await _messagesRef
+          .where('conversationId', isEqualTo: conversationId)
+          .get();
 
-      // Clear messages for the conversation
-      _messages[conversationId] = [];
-
-      // Update conversation to remove last message and reset unread count
-      final conversationIndex =
-          _conversations.indexWhere((conv) => conv.id == conversationId);
-
-      if (conversationIndex != -1) {
-        _conversations[conversationIndex] = ChatConversation(
-          lastMessage: null,
-          unreadCount: 0,
-          id: _conversations[conversationIndex].id,
-          participantId: _conversations[conversationIndex].participantId,
-          participantName: _conversations[conversationIndex].participantName,
-          participantAvatar:
-              _conversations[conversationIndex].participantAvatar,
-          isOnline: _conversations[conversationIndex].isOnline,
-        );
+      final batch = _firestore.batch();
+      for (var doc in messagesSnapshot.docs) {
+        batch.delete(doc.reference);
       }
 
-      // Notify listeners
-      _conversationsController.add(_conversations);
-      _messagesControllers[conversationId]?.add([]);
+      // Update conversation to remove last message
+      batch.update(_conversationsRef.doc(conversationId), {
+        'lastMessage': null,
+        'unreadCount': 0,
+      });
 
+      await batch.commit();
       return const Right(unit);
     } catch (e) {
       return const Left(UnexpectedFailure());
     }
+  }
+
+  String _getConversationId(String senderId, String receiverId) {
+    final ids = [senderId, receiverId]..sort();
+    return ids.join('_');
+  }
+
+  @override
+  void dispose() {
+    // No need to dispose anything for Firestore
+  }
+
+  @override
+  void startAutoMessages() {
+    // Not implementing auto messages for Firestore
+  }
+
+  @override
+  void stopAutoMessages() {
+    // Not implementing auto messages for Firestore
   }
 }

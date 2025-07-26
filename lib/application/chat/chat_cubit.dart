@@ -14,6 +14,10 @@ class ChatCubit extends Cubit<ChatState> {
     _watchConversations();
   }
 
+  Future<void> selectConversation(String conversationId) async {
+    emit(state.copyWith(selectedConversationIdOpt: Some(conversationId)));
+  }
+
   void _watchConversations() {
     _conversationsSubscription?.cancel();
     _conversationsSubscription = _repository.watchConversations().listen(
@@ -25,11 +29,18 @@ class ChatCubit extends Cubit<ChatState> {
     );
   }
 
-  void selectConversation(String conversationId) {
+  Future<void> watchSelectedConversationMessages() async {
+    if (state.selectedConversationIdOpt.isNone()) return;
+
+    final conversationId = state.selectedConversationIdOpt.toNullable()!;
+
+    // First fetch messages
+    final failureOrMessages = await _repository.getMessages(conversationId);
     emit(state.copyWith(
-      selectedConversationIdOpt: Some(conversationId),
-      failureOrMessagesOpt: none(),
+      failureOrMessagesOpt: Some(failureOrMessages),
     ));
+
+    // Then start watching for updates
     _watchMessages(conversationId);
   }
 
@@ -123,7 +134,7 @@ class ChatCubit extends Cubit<ChatState> {
     );
 
     final archiveToggledConversation = conversation.copyWith(
-      isArchived: !conversation.isArchived, // Toggle archive state
+      isArchived: !conversation.isArchived,
       isPinned: false, // Unpin when archiving
     );
 

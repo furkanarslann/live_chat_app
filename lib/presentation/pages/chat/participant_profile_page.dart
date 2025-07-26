@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/domain/models/chat_conversation.dart';
+import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 
 class ParticipantProfilePage extends StatelessWidget {
   final ChatConversation conversation;
@@ -50,9 +51,9 @@ class _ProfileHeader extends StatelessWidget {
         children: [
           Hero(
             tag: 'avatar_${conversation.participantId}',
-            child: CircleAvatar(
+            child: UserAvatar(
               radius: 60,
-              backgroundImage: NetworkImage(conversation.participantAvatar),
+              imageUrl: conversation.participantAvatar,
             ),
           ),
           const SizedBox(height: 16),

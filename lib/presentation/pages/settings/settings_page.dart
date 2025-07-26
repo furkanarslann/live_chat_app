@@ -21,12 +21,8 @@ class SettingsPage extends StatelessWidget {
       ),
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: _ProfileSection(),
-          ),
-          const SliverToBoxAdapter(
-            child: Divider(height: 1),
-          ),
+          SliverToBoxAdapter(child: _ProfileSection()),
+          const SliverToBoxAdapter(child: Divider(height: 2)),
           _AppSettingsSection(),
           _HelpSection(),
           _AccountSection(),
@@ -98,13 +94,6 @@ class _ProfileSection extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.qr_code),
-            onPressed: () {
-              //TODO(Furkan): Implement QR code
-            },
-            tooltip: context.tr.showQrCode,
           ),
         ],
       ),
@@ -264,10 +253,7 @@ class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> items;
 
-  const _SettingsSection({
-    required this.title,
-    required this.items,
-  });
+  const _SettingsSection({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +277,6 @@ class _SettingsSection extends StatelessWidget {
             ),
           ),
           ...items,
-          const SizedBox(height: Spacing.sm),
         ],
       ),
     );

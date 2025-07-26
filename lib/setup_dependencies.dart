@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/domain/repositories/auth_repository.dart';
@@ -31,7 +32,7 @@ Future<void> setupDependencies() async {
       firestore: getIt<FirebaseFirestore>(),
     ),
   );
-  
+
   getIt.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(),
   );
@@ -43,9 +44,16 @@ Future<void> setupDependencies() async {
       prefs: getIt<SharedPreferences>(),
     ),
   );
-  
+
   getIt.registerFactory<ChatCubit>(
     () => ChatCubit(getIt<ChatRepository>()),
+  );
+
+  getIt.registerFactory<CreateChatCubit>(
+    () => CreateChatCubit(
+      firestore: getIt<FirebaseFirestore>(),
+      auth: getIt<FirebaseAuth>(),
+    ),
   );
 
   getIt.registerFactory<ThemeCubit>(

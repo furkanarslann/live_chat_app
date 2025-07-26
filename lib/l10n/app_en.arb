@@ -214,5 +214,39 @@
   "cancel": "Cancel",
   "@cancel": {
     "description": "Text for cancel button in dialogs"
+  },
+  "startNewChat": "Start New Chat",
+  "@startNewChat": {
+    "description": "Title for the new chat creation bottom sheet"
+  },
+  "searchByNameOrEmail": "Search by name or email...",
+  "@searchByNameOrEmail": {
+    "description": "Hint text for user search field"
+  },
+  "noOtherUsers": "No other users found",
+  "@noOtherUsers": {
+    "description": "Message shown when no users exist except current user"
+  },
+  "noUsersMatchSearch": "No users match your search",
+  "@noUsersMatchSearch": {
+    "description": "Message shown when search returns no results"
+  },
+  "errorLoadingUsers": "Error: {error}",
+  "@errorLoadingUsers": {
+    "description": "Error message when loading users fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  "noMessagesTitle": "No messages yet",
+  "@noMessagesTitle": {
+    "description": "Title shown when there are no messages in a chat"
+  },
+  "noMessagesSubtitle": "Send a message to start the conversation!",
+  "@noMessagesSubtitle": {
+    "description": "Subtitle shown when there are no messages in a chat"
   }
 }

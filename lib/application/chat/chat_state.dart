@@ -48,6 +48,10 @@ class ChatState extends Equatable {
       });
   }
 
+  List<ChatMessage> get messagesOrEmpty {
+    return failureOrMessagesOpt.getOrElse(() => right([])).getOrElse(() => []);
+  }
+
   ChatState copyWith({
     bool? isLoading,
     Option<Either<Failure, List<ChatConversation>>>? failureOrConversationsOpt,

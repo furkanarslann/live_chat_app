@@ -3,14 +3,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../core/app_theme.dart';
 import 'chat_page.dart';
+import 'package:live_chat_app/presentation/pages/chat/create_new_chat_bottom_sheet.dart';
+import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
+import 'package:live_chat_app/setup_dependencies.dart';
 
-class ChatListPage extends StatelessWidget {
+class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
+
+  @override
+  State<ChatListPage> createState() => _ChatListPageState();
+}
+
+class _ChatListPageState extends State<ChatListPage> {
+  void _showCreateNewChatSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.colors.background,
+      builder: (context) => BlocProvider(
+        create: (context) => getIt<CreateChatCubit>(),
+        child: const CreateNewChatBottomSheet(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +55,7 @@ class ChatListPage extends StatelessWidget {
               minHeight: 48,
             ),
             onPressed: () {
-              //TODO(Furkan): Implement new chat
+              _showCreateNewChatSheet();
             },
           ),
           const SizedBox(width: 8),
@@ -74,8 +95,8 @@ class ChatListPage extends StatelessWidget {
 }
 
 class _ChatListFilledContent extends StatelessWidget {
-  const _ChatListFilledContent(this.conversations);
   final List<ChatConversation> conversations;
+  const _ChatListFilledContent(this.conversations);
 
   List<ChatConversation> get _sortedConversations {
     final nonArchived =
@@ -406,9 +427,7 @@ class ArchivedConversationsPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ChatPage(
-                        conversation: conversation,
-                      ),
+                      builder: (_) => ChatPage(conversation: conversation),
                     ),
                   );
                 },
@@ -594,10 +613,9 @@ class _ConversationTileContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: CircleAvatar(
+                    child: UserAvatar(
+                      imageUrl: conversation.participantAvatar,
                       radius: 28,
-                      backgroundImage:
-                          NetworkImage(conversation.participantAvatar),
                     ),
                   ),
                   if (conversation.isOnline)

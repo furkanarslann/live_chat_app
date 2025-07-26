@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
 import '../../../domain/models/chat_message.dart';
 import '../../core/extensions/build_context_translate_ext.dart';
+import '../../core/widgets/user_avatar.dart';
 import 'participant_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
@@ -21,23 +23,19 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final _messageController = TextEditingController();
-  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatCubit>().watchSelectedConversationMessages();
+    });
+  }
 
   @override
   void dispose() {
     _messageController.dispose();
-    _scrollController.dispose();
     super.dispose();
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
   }
 
   @override
@@ -57,9 +55,9 @@ class _ChatPageState extends State<ChatPage> {
           },
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundImage:
-                    NetworkImage(widget.conversation.participantAvatar),
+              UserAvatar(
+                imageUrl: widget.conversation.participantAvatar,
+                radius: 20,
               ),
               const SizedBox(width: 12),
               Column(
@@ -93,14 +91,7 @@ class _ChatPageState extends State<ChatPage> {
       body: Column(
         children: [
           Expanded(
-            child: BlocConsumer<ChatCubit, ChatState>(
-              listener: (context, state) {
-                if (state.failureOrMessagesOpt.isSome()) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _scrollToBottom();
-                  });
-                }
-              },
+            child: BlocBuilder<ChatCubit, ChatState>(
               builder: (context, state) {
                 return state.failureOrMessagesOpt.fold(
                   () => const Center(child: CircularProgressIndicator()),
@@ -114,27 +105,8 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                     ),
                     (messages) => messages.isEmpty
-                        ? Center(
-                            child: Text(
-                              context.tr.noMessages,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          )
-                        : ListView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(16),
-                            itemCount: messages.length,
-                            itemBuilder: (context, index) {
-                              final message = messages[index];
-                              final isMe = message.senderId == 'currentUser';
-
-                              return _MessageBubble(
-                                message: message,
-                                isMe: isMe,
-                                avatar: widget.conversation.participantAvatar,
-                              );
-                            },
-                          ),
+                        ? const _EmptyChatContent()
+                        : _FilledChatContent(conversation: widget.conversation),
                   ),
                 );
               },
@@ -213,6 +185,100 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
+class _FilledChatContent extends StatefulWidget {
+  const _FilledChatContent({required this.conversation});
+
+  final ChatConversation conversation;
+
+  @override
+  State<_FilledChatContent> createState() => _FilledChatContentState();
+}
+
+class _FilledChatContentState extends State<_FilledChatContent> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<ChatCubit, ChatState>(
+      listenWhen: (previous, current) =>
+          previous.messagesOrEmpty.length != current.messagesOrEmpty.length,
+      listener: (context, state) {
+        _scrollToBottom();
+      },
+      builder: (context, state) {
+        final messages = state.messagesOrEmpty;
+        return ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final message = messages[index];
+            final isMe = message.senderId == context.userId;
+
+            return _MessageBubble(
+              message: message,
+              isMe: isMe,
+              avatar: widget.conversation.participantAvatar,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _EmptyChatContent extends StatelessWidget {
+  const _EmptyChatContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 64,
+            color: theme.colorScheme.primary.withValues(alpha: 0.2),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.tr.noMessagesTitle,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            context.tr.noMessagesSubtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
@@ -221,7 +287,7 @@ class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
     required this.message,
     required this.isMe,
-    this.avatar = '',
+    required this.avatar,
   });
 
   @override
@@ -238,9 +304,9 @@ class _MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
-            CircleAvatar(
+            UserAvatar(
+              imageUrl: avatar,
               radius: 16,
-              backgroundImage: NetworkImage(avatar),
             ),
             const SizedBox(width: 8),
           ],

@@ -82,5 +82,12 @@
   "unknownError": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
   "signOut": "Abmelden",
   "signOutConfirmation": "Möchten Sie sich wirklich abmelden?",
-  "cancel": "Abbrechen"
+  "cancel": "Abbrechen",
+  "startNewChat": "Neuen Chat starten",
+  "searchByNameOrEmail": "Nach Name oder E-Mail suchen...",
+  "noOtherUsers": "Keine anderen Benutzer gefunden",
+  "noUsersMatchSearch": "Keine Benutzer entsprechen Ihrer Suche",
+  "errorLoadingUsers": "Fehler: {error}",
+  "noMessagesTitle": "Noch keine Nachrichten",
+  "noMessagesSubtitle": "Sende eine Nachricht, um die Unterhaltung zu beginnen!"
 }
