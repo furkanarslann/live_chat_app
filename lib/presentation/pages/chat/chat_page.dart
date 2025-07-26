@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
@@ -27,8 +29,10 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatCubit>().watchSelectedConversationMessages();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final chatCubit = context.read<ChatCubit>();
+      await chatCubit.selectConversation(widget.conversation.id);
+      await chatCubit.watchSelectedConversationMessages();
     });
   }
 
@@ -67,7 +71,8 @@ class _ChatPageState extends State<ChatPage> {
                     widget.conversation.participantName,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  if (widget.conversation.isOnline)
+                  // TODO(Furkan): Show online status from user model
+                  if (true)
                     Text(
                       context.tr.online,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -79,14 +84,6 @@ class _ChatPageState extends State<ChatPage> {
             ],
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              //TODO(Furkan): Implement chat options
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -198,19 +195,31 @@ class _FilledChatContentState extends State<_FilledChatContent> {
   final _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom(context, animated: false);
+    });
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+  void _scrollToBottom(context, {bool animated = true}) {
+    if (!_scrollController.hasClients) return;
+
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+
+    if (!animated) return _scrollController.jumpTo(maxScrollExtent);
+
+    _scrollController.animateTo(
+      maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -219,7 +228,10 @@ class _FilledChatContentState extends State<_FilledChatContent> {
       listenWhen: (previous, current) =>
           previous.messagesOrEmpty.length != current.messagesOrEmpty.length,
       listener: (context, state) {
-        _scrollToBottom();
+        if (state.messagesOrEmpty.last.senderId != context.userId) {
+          // Only scroll to bottom if the last message is not sent by the current user
+          _scrollToBottom(context);
+        }
       },
       builder: (context, state) {
         final messages = state.messagesOrEmpty;

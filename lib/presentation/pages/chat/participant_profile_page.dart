@@ -65,7 +65,8 @@ class _ProfileHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _OnlineStatusIndicator(isOnline: conversation.isOnline),
+          // TODO(Furkan): Show online status from user model
+          const _OnlineStatusIndicator(isOnline: true),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/domain/models/user.dart';
 
 extension BuildContextAuthX on BuildContext {
   /// Checks if the user is authenticated.
@@ -14,5 +15,11 @@ extension BuildContextAuthX on BuildContext {
     assert(isAuthenticated, 'User must be authenticated to access userId');
     final authCubit = read<AuthCubit>();
     return authCubit.state.user!.id;
+  }
+
+  User get currentUser {
+    assert(isAuthenticated, 'User must be authenticated to access currentUser');
+    final authCubit = read<AuthCubit>();
+    return authCubit.state.user!;
   }
 }

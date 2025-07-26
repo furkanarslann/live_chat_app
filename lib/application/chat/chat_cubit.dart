@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
-import '../../domain/models/chat_message.dart';
+import '../../domain/core/failures.dart';
 import '../../domain/repositories/chat_repository.dart';
 import 'chat_state.dart';
 
@@ -65,25 +65,29 @@ class ChatCubit extends Cubit<ChatState> {
       () => null,
       (failureOrConversations) => failureOrConversations.fold(
         (failure) => null,
-        (conversations) => conversations
-            .firstWhere((conv) => conv.id == conversationId)
-            .participantId,
+        (conversations) {
+          final conversation = conversations.firstWhere(
+            (conv) => conv.id == conversationId,
+            orElse: () => throw const UnexpectedFailure(),
+          );
+          return conversation.participantId;
+        },
       ),
     );
 
-    if (participantId == null) return;
+    if (participantId == null) {
+      emit(state.copyWith(
+        failureOrSuccessOpt: some(left(const UnexpectedFailure())),
+      ));
+      return;
+    }
 
     emit(state.copyWith(isSending: true));
 
-    final message = ChatMessage(
-      id: DateTime.now().toString(),
-      senderId: 'currentUser',
-      receiverId: participantId,
+    final result = await _repository.sendMessage(
       content: content,
-      timestamp: DateTime.now(),
+      participantId: participantId,
     );
-
-    final result = await _repository.sendMessage(message);
 
     emit(state.copyWith(
       isSending: false,
@@ -100,72 +104,14 @@ class ChatCubit extends Cubit<ChatState> {
     await _repository.clearChatHistory(conversationId);
   }
 
-  void togglePin(String conversationId) {
-    final conversations = state.conversationsOrEmpty;
-    if (conversations.isEmpty) return;
-
-    final conversation = conversations.firstWhere(
-      (conv) => conv.id == conversationId,
-    );
-
-    final updatedConversation = conversation.copyWith(
-      isPinned: !conversation.isPinned,
-    );
-
-    // Update the conversation in repository
-    final updatedConversations = conversations.map((conv) {
-      if (conv.id == conversationId) {
-        return updatedConversation;
-      }
-      return conv;
-    }).toList();
-
-    emit(state.copyWith(
-      failureOrConversationsOpt: some(right(updatedConversations)),
-    ));
-  }
-
-  void toggleArchiveConversation(String conversationId) {
-    final conversations = state.conversationsOrEmpty;
-    if (conversations.isEmpty) return;
-
-    final conversation = conversations.firstWhere(
-      (conv) => conv.id == conversationId,
-    );
-
-    final archiveToggledConversation = conversation.copyWith(
-      isArchived: !conversation.isArchived,
-      isPinned: false, // Unpin when archiving
-    );
-
-    // Update the conversation in repository
-    final updatedConversations = conversations.map((conv) {
-      if (conv.id == conversationId) {
-        return archiveToggledConversation;
-      }
-      return conv;
-    }).toList();
-
-    emit(state.copyWith(
-      failureOrConversationsOpt: some(right(updatedConversations)),
-    ));
-  }
-
-  void deleteConversation(String conversationId) {
-    final conversations = state.conversationsOrEmpty;
-    final updatedConversations =
-        conversations.where((conv) => conv.id != conversationId).toList();
-
-    emit(state.copyWith(
-      failureOrConversationsOpt: some(right(updatedConversations)),
-    ));
+  Future<void> deleteConversation(String conversationId) async {
+    await _repository.deleteConversation(conversationId);
   }
 
   @override
   Future<void> close() {
     _conversationsSubscription?.cancel();
     _messagesSubscription?.cancel();
-    _repository.dispose();
     return super.close();
   }
 }

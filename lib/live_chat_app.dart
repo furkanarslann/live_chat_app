@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/auth/user_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
@@ -20,6 +21,7 @@ class LiveChatApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthCubit>(create: (_) => getIt<AuthCubit>()),
         BlocProvider<ChatCubit>(create: (_) => getIt<ChatCubit>()),
+        BlocProvider<UserCubit>(create: (_) => getIt<UserCubit>()),
         BlocProvider<ThemeCubit>(create: (_) => getIt<ThemeCubit>()),
         BlocProvider<LanguageCubit>(create: (_) => getIt<LanguageCubit>()),
       ],

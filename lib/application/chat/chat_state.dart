@@ -38,16 +38,6 @@ class ChatState extends Equatable {
         .getOrElse(() => []);
   }
 
-  List<ChatConversation> get archivedConversations {
-    return conversationsOrEmpty.where((conv) => conv.isArchived).toList()
-      ..sort((a, b) {
-        final aTime = a.lastMessage?.timestamp ?? DateTime(0);
-        final bTime = b.lastMessage?.timestamp ?? DateTime(0);
-        // Newest first
-        return bTime.compareTo(aTime);
-      });
-  }
-
   List<ChatMessage> get messagesOrEmpty {
     return failureOrMessagesOpt.getOrElse(() => right([])).getOrElse(() => []);
   }

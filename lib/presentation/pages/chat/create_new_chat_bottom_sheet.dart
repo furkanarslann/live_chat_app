@@ -144,10 +144,6 @@ class _CreateNewChatBottomSheetState extends State<CreateNewChatBottomSheet> {
                                 leading: UserAvatar(
                                   imageUrl: user.displayPhotoUrl,
                                   radius: 20,
-                                  child: user.photoUrl == null &&
-                                          user.firstName.isNotEmpty
-                                      ? Text(user.firstName[0].toUpperCase())
-                                      : null,
                                 ),
                                 title: Text(user.fullName),
                                 subtitle: Text(user.email),

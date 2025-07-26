@@ -52,11 +52,12 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<Either<Failure, List<ChatMessage>>> getMessages(
-      String conversationId) async {
+    String conversationId,
+  ) async {
     try {
       final snapshot = await _messagesRef
           .where('conversationId', isEqualTo: conversationId)
-          .orderBy('timestamp', descending: true)
+          .orderBy('timestamp', descending: false)
           .get();
 
       final messages = snapshot.docs
@@ -73,24 +74,33 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> sendMessage(ChatMessage message) async {
+  Future<Either<Failure, Unit>> sendMessage({
+    required String content,
+    required String participantId,
+  }) async {
     try {
       final currentUserId = _currentUserId;
 
-      // Validate that the message is from the current user
-      if (message.senderId != currentUserId) {
-        return const Left(UnexpectedFailure());
-      }
+      final message = ChatMessage(
+        id: '', // Firebase will generate this when added.
+        senderId: currentUserId,
+        receiverId: participantId,
+        content: content,
+        timestamp: DateTime.now(),
+      );
+
+      final conversationId = _getConversationId(
+        currentUserId,
+        message.receiverId,
+      );
 
       // Add message to Firestore
       final messageRef = await _messagesRef.add({
+        'conversationId': conversationId,
         ...message.toMap(),
-        'conversationId': _getConversationId(currentUserId, message.receiverId),
       });
 
       // Update conversation's last message
-      final conversationId =
-          _getConversationId(currentUserId, message.receiverId);
       await _conversationsRef.doc(conversationId).update({
         'lastMessage': {
           ...message.toMap(),
@@ -119,10 +129,11 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<Either<Failure, List<ChatMessage>>> watchMessages(
-      String conversationId) {
+    String conversationId,
+  ) {
     return _messagesRef
         .where('conversationId', isEqualTo: conversationId)
-        .orderBy('timestamp', descending: true)
+        .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) {
       try {
@@ -147,17 +158,13 @@ class ChatRepositoryImpl implements ChatRepository {
           .where('participants', arrayContains: currentUserId)
           .snapshots()
           .map((snapshot) {
-        try {
-          final conversations = snapshot.docs
-              .map((doc) => ChatConversation.fromMap(
-                    doc.data() as Map<String, dynamic>,
-                    id: doc.id,
-                  ))
-              .toList();
-          return Right(conversations);
-        } catch (e) {
-          return const Left(UnexpectedFailure());
-        }
+        final conversations = snapshot.docs
+            .map((doc) => ChatConversation.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  id: doc.id,
+                ))
+            .toList();
+        return Right(conversations);
       });
     } catch (e) {
       return Stream.value(const Left(UnexpectedFailure()));
@@ -196,17 +203,25 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  void dispose() {
-    // No need to dispose anything for Firestore
-  }
+  Future<Either<Failure, Unit>> deleteConversation(
+    String conversationId,
+  ) async {
+    try {
+      await _messagesRef
+          .where('conversationId', isEqualTo: conversationId)
+          .get()
+          .then((snapshot) {
+        final batch = _firestore.batch();
+        for (var doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        return batch.commit();
+      });
 
-  @override
-  void startAutoMessages() {
-    // Not implementing auto messages for Firestore
-  }
-
-  @override
-  void stopAutoMessages() {
-    // Not implementing auto messages for Firestore
+      await _conversationsRef.doc(conversationId).delete();
+      return const Right(unit);
+    } catch (e) {
+      return const Left(UnexpectedFailure());
+    }
   }
 }

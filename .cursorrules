@@ -1,0 +1,160 @@
+# Widget Creation Style Guidelines
+
+## 1. Widget Organization
+
+- Create separate widget classes for distinct UI components
+- Each widget should have a single responsibility
+- Place related widgets in the same file
+- Use private widgets (prefixed with \_) for components used only within the file
+
+## 2. Widget Structure
+
+dart
+class ComponentName extends StatelessWidget {
+const ComponentName({super.key}); // Use const constructor when possible
+
+@override
+Widget build(BuildContext context) {
+return Widget(); // Single focused component
+}
+}
+
+## 3. Naming Conventions
+
+- Use PascalCase for widget names
+- Names should be descriptive and indicate purpose
+- Prefix private widgets with underscore
+- Example: UserProfileHeader, \_CustomDivider
+
+## 4. Code Organization Within Files
+
+- Order of elements:
+  1. Imports
+  2. Main page/screen widget
+  3. Public component widgets
+  4. Private utility widgets
+  5. Constants and utilities (if any)
+
+## 5. Best Practices
+
+- Use const constructors whenever possible
+- Keep widget methods focused and small
+- Extract repeated code into reusable widgets
+- Use named parameters for clarity
+- Document complex widget behavior
+- Maintain consistent padding/margin patterns
+- Always leave //TODO(Furkan): for unimplemented onTap handlers
+
+## 6. State Management
+
+- Prefer stateless widgets when possible
+- Keep state at the appropriate level
+- Use callbacks for parent communication
+- Consider using state management solutions for complex state
+- All state and model classes must extend Equatable for proper equality comparison
+- Always implement props getter in state/model classes with all fields that affect equality
+
+## 7. Styling
+
+- Use Theme.of(context) for consistent styling
+- Extract common styles to theme or style constants
+- Maintain consistent spacing and layout patterns
+- Use named constants for magic numbers
+- Never define custom TextStyle or Color constants in widget files
+- Use Color.withValues(alpha:) instead of deprecated Color.withOpacity()
+
+## 8. Performance
+
+- Use const constructors
+- Avoid unnecessary rebuilds
+- Keep widget tree depth reasonable
+- Extract large widget lists to separate components
+
+## 9. Example Structure
+
+dart
+// Main widget
+class FeaturePage extends StatelessWidget {
+const FeaturePage({super.key});
+
+@override
+Widget build(BuildContext context) {
+return Column(
+children: const [
+FeatureHeader(),
+FeatureContent(),
+FeatureFooter(),
+],
+);
+}
+}
+
+// Component widgets
+class FeatureHeader extends StatelessWidget {
+const FeatureHeader({super.key});
+// Implementation
+}
+
+// Private utility widgets
+class \_CustomButton extends StatelessWidget {
+const \_CustomButton({
+required this.onPressed,
+required this.label,
+});
+
+final VoidCallback onPressed;
+final String label;
+// Implementation
+}
+
+## 10. Documentation
+
+- Add comments for complex logic
+- Document public APIs
+- Include usage examples for reusable widgets
+- Explain any non-obvious widget behavior
+
+## 11. State and Model Classes
+
+- All state and model classes must extend `Equatable` for proper equality comparison.
+- All state classes must use part/part of relation with their respective cubit or bloc classes.
+
+```dart
+// Example of proper state class using dartz Option and Either
+import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
+import 'package:your_project_name/core/failure/failures.dart';
+
+class FeatureState extends Equatable {
+  final String id;
+  final bool isLoading;
+  final Either<Failure, List<Item>> failureOrItems;
+  final Option<String> selectedItemId;
+
+  const FeatureState({
+    required this.id,
+    this.isLoading = false,
+    this.failureOrItems = const Right([]),
+    this.selectedItemId = const None(),
+  });
+
+  @override
+  List<Object?> get props => [id, isLoading, failureOrItems, selectedItemId];
+
+  FeatureState copyWith({
+    String? id,
+    bool? isLoading,
+    Either<Failure, List<Item>>? failureOrItems,
+    Option<String>? selectedItemId,
+  }) {
+    return FeatureState(
+      id: id ?? this.id,
+      isLoading: isLoading ?? this.isLoading,
+      failureOrItems: failureOrItems ?? this.failureOrItems,
+      selectedItemId: selectedItemId ?? this.selectedItemId,
+    );
+  }
+}
+```
+
+Follow these guidelines to maintain consistent, readable, and maintainable widget code throughout the project.

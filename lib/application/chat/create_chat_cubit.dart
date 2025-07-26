@@ -24,7 +24,7 @@ class CreateChatCubit extends Cubit<CreateChatState> {
 
   void _watchUsers() {
     _usersSubscription?.cancel();
-    
+
     final currentUserId = _auth.currentUser?.uid;
     if (currentUserId == null) {
       emit(state.copyWith(
@@ -71,8 +71,10 @@ class CreateChatCubit extends Cubit<CreateChatState> {
       final conversationId = ids.join('_');
 
       // Check if conversation already exists
-      final conversationDoc =
-          await _firestore.collection('conversations').doc(conversationId).get();
+      final conversationDoc = await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .get();
 
       if (!conversationDoc.exists) {
         // Create new conversation
@@ -82,8 +84,6 @@ class CreateChatCubit extends Cubit<CreateChatState> {
           participantName: user.fullName,
           participantAvatar: user.displayPhotoUrl,
           participants: [currentUserId, user.id],
-          isOnline: user.isOnline,
-          lastSeen: user.lastSeen,
         );
 
         await _firestore
@@ -125,4 +125,4 @@ class CreateChatCubit extends Cubit<CreateChatState> {
     _usersSubscription?.cancel();
     return super.close();
   }
-} 
+}

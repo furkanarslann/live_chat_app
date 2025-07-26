@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:live_chat_app/application/auth/auth_cubit.dart';
-import 'package:live_chat_app/application/auth/auth_state.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
-import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
-import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
+import '../../../application/auth/user_cubit.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
+import '../../../application/chat/create_chat_cubit.dart';
 import '../../../domain/models/chat_conversation.dart';
+import '../../../domain/models/user.dart';
 import '../../core/app_theme.dart';
+import '../../core/extensions/build_context_translate_ext.dart';
+import '../../core/widgets/user_avatar.dart';
 import 'chat_page.dart';
-import 'package:live_chat_app/presentation/pages/chat/create_new_chat_bottom_sheet.dart';
-import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
-import 'package:live_chat_app/setup_dependencies.dart';
+import 'create_new_chat_bottom_sheet.dart';
+import '../../../setup_dependencies.dart';
 
 class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
@@ -28,8 +28,8 @@ class _ChatListPageState extends State<ChatListPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: context.colors.background,
-      builder: (context) => BlocProvider(
-        create: (context) => getIt<CreateChatCubit>(),
+      builder: (_) => BlocProvider(
+        create: (_) => getIt<CreateChatCubit>(),
         child: const CreateNewChatBottomSheet(),
       ),
     );
@@ -37,141 +37,140 @@ class _ChatListPageState extends State<ChatListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: context.colors.background,
-        title: Text(
-          context.tr.chats,
-          style: const TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            iconSize: 26,
-            tooltip: context.tr.newChat,
-            constraints: const BoxConstraints(
-              minWidth: 48,
-              minHeight: 48,
-            ),
-            onPressed: () {
-              _showCreateNewChatSheet();
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Column(
-        children: [
-          const _FilterChips(),
-          Expanded(
-            child: BlocBuilder<ChatCubit, ChatState>(
-              builder: (context, state) {
-                return state.failureOrConversationsOpt.fold(
-                  () => const Center(
-                    child: CircularProgressIndicator.adaptive(),
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return state.userOpt.fold(
+          () => Center(
+            child: Text(
+              context.tr.errorOccured,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
                   ),
-                  (failureOrConversations) => failureOrConversations.fold(
-                    (failure) => Center(
-                      child: Text(
-                        context.tr.errorOccured,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                      ),
-                    ),
-                    (conversations) => conversations.isEmpty
-                        ? _ChatListEmptyContent()
-                        : _ChatListFilledContent(conversations),
-                  ),
-                );
-              },
             ),
           ),
-        ],
-      ),
+          (user) => Scaffold(
+            appBar: AppBar(
+              backgroundColor: context.colors.background,
+              title: Text(
+                context.tr.chats,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  iconSize: 26,
+                  tooltip: context.tr.newChat,
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  onPressed: _showCreateNewChatSheet,
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _FilterChips(),
+                Expanded(child: _ChatListContent(currentUser: user)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
-class _ChatListFilledContent extends StatelessWidget {
-  final List<ChatConversation> conversations;
-  const _ChatListFilledContent(this.conversations);
+class _ChatListContent extends StatelessWidget {
+  final User currentUser;
 
-  List<ChatConversation> get _sortedConversations {
-    final nonArchived =
-        conversations.where((conv) => !conv.isArchived).toList();
+  const _ChatListContent({required this.currentUser});
+
+  List<ChatConversation> _filterConversations(
+    List<ChatConversation> conversations,
+  ) {
+    final nonArchived = conversations
+        .where((conv) => !currentUser.chatPreferences.isArchivedBy(conv.id))
+        .toList();
+
     nonArchived.sort((a, b) {
-      // First sort by pinned status
-      if (a.isPinned != b.isPinned) {
-        return a.isPinned ? -1 : 1; // Pinned conversations go first
-      }
-      // Then sort by date within each group (pinned and unpinned)
-      final aTime = a.lastMessage?.timestamp ?? DateTime(0);
-      final bTime = b.lastMessage?.timestamp ?? DateTime(0);
-      return bTime.compareTo(aTime); // Newest first
-    });
-    return nonArchived;
-  }
+      final aPinned = currentUser.chatPreferences.isPinnedBy(a.id);
+      final bPinned = currentUser.chatPreferences.isPinnedBy(b.id);
+      if (aPinned != bPinned) return aPinned ? -1 : 1;
 
-  List<ChatConversation> get _archivedConversations {
-    return conversations.where((conv) => conv.isArchived).toList()
-      ..sort((a, b) {
-        final aTime = a.lastMessage?.timestamp ?? DateTime(0);
-        final bTime = b.lastMessage?.timestamp ?? DateTime(0);
-        return bTime.compareTo(aTime); // Newest first
-      });
+      final aTime = a.lastMessage?.timestamp ?? a.createdAt ?? DateTime(0);
+      final bTime = b.lastMessage?.timestamp ?? b.createdAt ?? DateTime(0);
+      return bTime.compareTo(aTime);
+    });
+
+    return nonArchived;
   }
 
   @override
   Widget build(BuildContext context) {
-    final sortedConversations = _sortedConversations;
-    final archivedConversations = _archivedConversations;
-    final hasArchivedConversations = archivedConversations.isNotEmpty;
-
-    return CustomScrollView(
-      slivers: [
-        if (hasArchivedConversations)
-          SliverToBoxAdapter(
-            child: _ArchivedButton(
-              count: archivedConversations.length,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ArchivedConversationsPage(
-                      conversations: archivedConversations,
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, state) {
+        return state.failureOrConversationsOpt.fold(
+          () => const Center(child: CircularProgressIndicator()),
+          (failureOrConversations) => failureOrConversations.fold(
+            (failure) => Center(
+              child: Text(
+                context.tr.errorOccured,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                  ),
-                );
-              },
+              ),
             ),
-          ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final current = sortedConversations[index];
-              return _ConversationTile(
-                conversation: current,
-                onTap: () {
-                  context.read<ChatCubit>().selectConversation(current.id);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatPage(
-                        conversation: current,
+            (conversations) {
+              if (conversations.isEmpty) return _ChatListEmptyContent();
+
+              final filteredConversations = _filterConversations(conversations);
+              final archivedCount =
+                  conversations.length - filteredConversations.length;
+
+              return CustomScrollView(
+                slivers: [
+                  if (archivedCount > 0)
+                    SliverToBoxAdapter(
+                      child: _ArchivedButton(
+                        count: archivedCount,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ArchivedConversationsPage(),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  );
-                },
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final conversation = filteredConversations[index];
+                        return _ConversationTile(
+                          conversation: conversation,
+                          currentUser: currentUser,
+                        );
+                      },
+                      childCount: filteredConversations.length,
+                    ),
+                  ),
+                ],
               );
             },
-            childCount: sortedConversations.length,
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -187,9 +186,10 @@ class _FilterChips extends StatelessWidget {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.sm,
+            horizontal: Spacing.md,
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               _FilterChip(
                 label: context.tr.all,
@@ -217,14 +217,6 @@ class _FilterChips extends StatelessWidget {
               const SizedBox(width: Spacing.sm),
               _FilterChip(
                 label: context.tr.groups,
-                isSelected: false,
-                onTap: () {
-                  // TODO(Furkan): Implement filter
-                },
-              ),
-              const SizedBox(width: Spacing.sm),
-              _FilterChip(
-                icon: Icons.add,
                 isSelected: false,
                 onTap: () {
                   // TODO(Furkan): Implement filter
@@ -381,63 +373,80 @@ class _ArchivedButton extends StatelessWidget {
 }
 
 class ArchivedConversationsPage extends StatelessWidget {
-  final List<ChatConversation> conversations;
-
-  const ArchivedConversationsPage({
-    super.key,
-    required this.conversations,
-  });
+  const ArchivedConversationsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr.archived),
-      ),
-      body: BlocBuilder<ChatCubit, ChatState>(
-        builder: (context, state) {
-          final archivedConversations = state.archivedConversations;
-
-          if (archivedConversations.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.archive_outlined,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: Spacing.md),
-                  Text(
-                    context.tr.noConversations,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, userState) {
+        return BlocBuilder<ChatCubit, ChatState>(
+          builder: (context, chatState) {
+            final conversations = chatState.failureOrConversationsOpt.fold(
+              () => <ChatConversation>[],
+              (failureOrConversations) => failureOrConversations.fold(
+                (failure) => <ChatConversation>[],
+                (conversations) => conversations,
               ),
             );
-          }
 
-          return ListView.builder(
-            itemCount: archivedConversations.length,
-            itemBuilder: (context, index) {
-              final conversation = archivedConversations[index];
-              return _ConversationTile(
-                conversation: conversation,
-                onTap: () {
-                  context.read<ChatCubit>().selectConversation(conversation.id);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatPage(conversation: conversation),
-                    ),
-                  );
-                },
+            final currentUser = userState.user;
+            if (currentUser == null) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
               );
-            },
-          );
-        },
-      ),
+            }
+
+            final archivedConversations = conversations
+                .where((conversation) =>
+                    currentUser.chatPreferences.isArchivedBy(conversation.id))
+                .toList();
+
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(context.tr.archived),
+              ),
+              body: archivedConversations.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.archive_outlined,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: Spacing.md),
+                          Text(
+                            context.tr.noConversations,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: archivedConversations.length,
+                      itemBuilder: (context, index) {
+                        final conversation = archivedConversations[index];
+                        return _ConversationTile(
+                          conversation: conversation,
+                          currentUser: currentUser,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) {
+                                  return ChatPage(conversation: conversation);
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -489,74 +498,61 @@ class _ChatListEmptyContent extends StatelessWidget {
 
 class _ConversationTile extends StatelessWidget {
   final ChatConversation conversation;
-  final VoidCallback onTap;
+  final User currentUser;
+  final VoidCallback? onTap;
 
   const _ConversationTile({
     required this.conversation,
-    required this.onTap,
+    required this.currentUser,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Slidable(
       key: ValueKey(conversation.id),
-      // Start action pane (right to left swipe)
-      startActionPane: conversation.isArchived
-          ? ActionPane(
-              motion: const DrawerMotion(),
-              children: [
-                SlidableAction(
-                  onPressed: (_) {
-                    context
-                        .read<ChatCubit>()
-                        .toggleArchiveConversation(conversation.id);
-                  },
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  icon: Icons.unarchive,
-                  label: context.tr.unarchive,
-                ),
-              ],
-            )
-          : ActionPane(
-              motion: const DrawerMotion(),
-              children: [
-                SlidableAction(
-                  onPressed: (_) {
-                    context.read<ChatCubit>().togglePin(conversation.id);
-                  },
-                  backgroundColor:
-                      conversation.isPinned ? Colors.orange : Colors.blue,
-                  foregroundColor: Colors.white,
-                  icon: conversation.isPinned
-                      ? Icons.push_pin_outlined
-                      : Icons.push_pin,
-                  label:
-                      conversation.isPinned ? context.tr.unpin : context.tr.pin,
-                ),
-              ],
-            ),
-      // End action pane (left to right swipe)
+      startActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              context.read<UserCubit>().togglePinConversation(conversation.id);
+            },
+            backgroundColor:
+                currentUser.chatPreferences.isPinnedBy(conversation.id)
+                    ? Colors.orange
+                    : Colors.blue,
+            foregroundColor: Colors.white,
+            icon: currentUser.chatPreferences.isPinnedBy(conversation.id)
+                ? Icons.push_pin_outlined
+                : Icons.push_pin,
+            label: currentUser.chatPreferences.isPinnedBy(conversation.id)
+                ? context.tr.unpin
+                : context.tr.pin,
+          ),
+        ],
+      ),
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
-        dismissible: DismissiblePane(
-          onDismissed: () {
-            context.read<ChatCubit>().deleteConversation(conversation.id);
-          },
-        ),
         children: [
-          if (!conversation.isArchived)
-            SlidableAction(
-              onPressed: (_) {
-                context
-                    .read<ChatCubit>()
-                    .toggleArchiveConversation(conversation.id);
-              },
-              backgroundColor: const Color(0xFF7BC043),
-              foregroundColor: Colors.white,
-              icon: Icons.archive,
-              label: context.tr.archived,
-            ),
+          SlidableAction(
+            onPressed: (_) {
+              context
+                  .read<UserCubit>()
+                  .toggleArchiveConversation(conversation.id);
+            },
+            backgroundColor:
+                currentUser.chatPreferences.isArchivedBy(conversation.id)
+                    ? Colors.orange
+                    : const Color(0xFF7BC043),
+            foregroundColor: Colors.white,
+            icon: currentUser.chatPreferences.isArchivedBy(conversation.id)
+                ? Icons.unarchive
+                : Icons.archive,
+            label: currentUser.chatPreferences.isArchivedBy(conversation.id)
+                ? context.tr.unarchive
+                : context.tr.archived,
+          ),
           SlidableAction(
             onPressed: (_) {
               context.read<ChatCubit>().deleteConversation(conversation.id);
@@ -570,7 +566,17 @@ class _ConversationTile extends StatelessWidget {
       ),
       child: _ConversationTileContent(
         conversation: conversation,
-        onTap: onTap,
+        currentUser: currentUser,
+        onTap: onTap ??
+            () {
+              context.read<ChatCubit>().selectConversation(conversation.id);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatPage(conversation: conversation),
+                ),
+              );
+            },
       ),
     );
   }
@@ -578,197 +584,143 @@ class _ConversationTile extends StatelessWidget {
 
 class _ConversationTileContent extends StatelessWidget {
   final ChatConversation conversation;
+  final User currentUser;
   final VoidCallback onTap;
 
   const _ConversationTileContent({
     required this.conversation,
+    required this.currentUser,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final isPinned = currentUser.chatPreferences.isPinnedBy(conversation.id);
+    final unreadCount =
+        currentUser.chatPreferences.getUnreadCount(conversation.id);
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 80),
-        padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.md,
-          vertical: Spacing.sm,
-        ),
-        child: Row(
-          children: [
-            Hero(
-              tag: 'avatar_${conversation.id}',
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: UserAvatar(
-                      imageUrl: conversation.participantAvatar,
-                      radius: 28,
-                    ),
+    return ListTile(
+      leading: UserAvatar(
+        imageUrl: conversation.participantAvatar,
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              conversation.participantName,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: unreadCount > 0 ? FontWeight.bold : null,
                   ),
-                  if (conversation.isOnline)
-                    Positioned(
-                      right: 2,
-                      bottom: 2,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: theme.scaffoldBackgroundColor,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
+            ),
+          ),
+          if (isPinned)
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Icon(
+                Icons.push_pin,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
-            const SizedBox(width: Spacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      if (conversation.isPinned)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Icon(
-                            Icons.push_pin,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      Expanded(
-                        child: Text(
-                          conversation.participantName,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.1,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        _formatTimestamp(
-                          context,
-                          conversation.lastMessage?.timestamp,
-                        ),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: conversation.unreadCount > 0
-                              ? colorScheme.primary
-                              : colorScheme.onSurface.withValues(alpha: 0.5),
-                          fontWeight: conversation.unreadCount > 0
-                              ? FontWeight.w600
-                              : null,
-                          letterSpacing: 0.1,
-                        ),
-                      ),
-                    ],
+        ],
+      ),
+      subtitle: conversation.lastMessage != null
+          ? Text(
+              conversation.lastMessage!.content,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: unreadCount > 0 ? FontWeight.bold : null,
                   ),
-                  const SizedBox(height: Spacing.xxs),
-                  BlocBuilder<AuthCubit, AuthState>(
-                    buildWhen: (_, current) => current.isAuthenticated,
-                    builder: (context, state) {
-                      return Row(
-                        children: [
-                          if (conversation.lastMessage?.senderId ==
-                              state.user?.id) ...[
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Icon(
-                                conversation.lastMessage!.isRead
-                                    ? Icons.done_all
-                                    : Icons.done,
-                                size: 16,
-                                color: conversation.lastMessage!.isRead
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface
-                                        .withValues(alpha: 0.4),
-                              ),
-                            ),
-                          ],
-                          Expanded(
-                            child: Text(
-                              conversation.lastMessage?.content ?? '',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: conversation.unreadCount > 0
-                                    ? colorScheme.onSurface
-                                        .withValues(alpha: 0.9)
-                                    : colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                fontWeight: conversation.unreadCount > 0
-                                    ? FontWeight.w500
-                                    : null,
-                                letterSpacing: 0.2,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (conversation.unreadCount > 0)
-                            Container(
-                              margin: const EdgeInsets.only(
-                                left: Spacing.sm,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: Spacing.xs + 2,
-                                vertical: Spacing.xxs,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colorScheme.primary
-                                        .withValues(alpha: 0.25),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 24,
-                                minHeight: 20,
-                              ),
-                              child: Text(
-                                conversation.unreadCount.toString(),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onPrimary,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+            )
+          : null,
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (conversation.lastMessage != null)
+            Text(
+              _formatTime(conversation.lastMessage!.timestamp),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          if (unreadCount > 0)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Text(
+                unreadCount.toString(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+              ),
+            ),
+        ],
+      ),
+      onTap: onTap,
+      onLongPress: () => _showConversationOptions(context),
+    );
+  }
+
+  void _showConversationOptions(BuildContext context) {
+    final isPinned = currentUser.chatPreferences.isPinnedBy(conversation.id);
+    final isArchived =
+        currentUser.chatPreferences.isArchivedBy(conversation.id);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                isPinned ? Icons.push_pin_outlined : Icons.push_pin,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: Text(
+                isPinned ? context.tr.unpin : context.tr.pin,
+              ),
+              onTap: () {
+                context
+                    .read<UserCubit>()
+                    .togglePinConversation(conversation.id);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                isArchived ? Icons.unarchive : Icons.archive,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: Text(
+                isArchived ? context.tr.unarchive : context.tr.archived,
+              ),
+              onTap: () {
+                context
+                    .read<UserCubit>()
+                    .toggleArchiveConversation(conversation.id);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.delete,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                context.tr.delete,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteConfirmation(context);
+              },
             ),
           ],
         ),
@@ -776,24 +728,45 @@ class _ConversationTileContent extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(BuildContext context, DateTime? timestamp) {
-    if (timestamp == null) return '';
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final messageDate = DateTime(
-      timestamp.year,
-      timestamp.month,
-      timestamp.day,
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.tr.delete),
+        content: Text(
+            '${context.tr.delete} ${context.tr.conversations.toLowerCase()}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.tr.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<ChatCubit>().deleteConversation(conversation.id);
+              Navigator.pop(context);
+            },
+            child: Text(
+              context.tr.delete,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
 
-    if (messageDate == today) {
-      return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
-    } else if (messageDate == yesterday) {
-      return context.tr.yesterday;
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    final difference = now.difference(time);
+
+    if (difference.inDays > 7) {
+      return '${time.day}/${time.month}/${time.year}';
+    } else if (difference.inDays > 0) {
+      return '${time.day}/${time.month}';
     } else {
-      return '${timestamp.day}/${timestamp.month}';
+      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     }
   }
 }

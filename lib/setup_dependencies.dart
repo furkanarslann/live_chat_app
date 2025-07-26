@@ -2,11 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/auth/user_cubit.dart';
 import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/domain/repositories/auth_repository.dart';
+import 'package:live_chat_app/domain/repositories/user_repository.dart';
 import 'package:live_chat_app/infrastructure/repositories/auth_repository_impl.dart';
+import 'package:live_chat_app/infrastructure/repositories/user_repository_impl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'application/chat/chat_cubit.dart';
 import 'domain/repositories/chat_repository.dart';
@@ -34,7 +37,17 @@ Future<void> setupDependencies() async {
   );
 
   getIt.registerLazySingleton<ChatRepository>(
-    () => ChatRepositoryImpl(),
+    () => ChatRepositoryImpl(
+      firestore: getIt<FirebaseFirestore>(),
+      auth: getIt<FirebaseAuth>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(
+      auth: getIt<FirebaseAuth>(),
+      firestore: getIt<FirebaseFirestore>(),
+    ),
   );
 
   // Blocs/Cubits
@@ -47,6 +60,10 @@ Future<void> setupDependencies() async {
 
   getIt.registerFactory<ChatCubit>(
     () => ChatCubit(getIt<ChatRepository>()),
+  );
+
+  getIt.registerFactory<UserCubit>(
+    () => UserCubit(getIt<UserRepository>()),
   );
 
   getIt.registerFactory<CreateChatCubit>(
