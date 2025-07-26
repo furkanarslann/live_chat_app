@@ -430,16 +430,6 @@ class ArchivedConversationsPage extends StatelessWidget {
                         return _ConversationTile(
                           conversation: conversation,
                           currentUser: currentUser,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) {
-                                  return ChatPage(conversation: conversation);
-                                },
-                              ),
-                            );
-                          },
                         );
                       },
                     ),
@@ -499,12 +489,10 @@ class _ChatListEmptyContent extends StatelessWidget {
 class _ConversationTile extends StatelessWidget {
   final ChatConversation conversation;
   final User currentUser;
-  final VoidCallback? onTap;
 
   const _ConversationTile({
     required this.conversation,
     required this.currentUser,
-    this.onTap,
   });
 
   @override
@@ -567,16 +555,14 @@ class _ConversationTile extends StatelessWidget {
       child: _ConversationTileContent(
         conversation: conversation,
         currentUser: currentUser,
-        onTap: onTap ??
-            () {
-              context.read<ChatCubit>().selectConversation(conversation.id);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatPage(conversation: conversation),
-                ),
-              );
-            },
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatPage(conversation: conversation),
+            ),
+          );
+        },
       ),
     );
   }

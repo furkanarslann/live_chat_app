@@ -31,7 +31,7 @@ class User extends Equatable {
 
   List<String> get archivedConvIds => chatPreferences.archivedConversations;
 
-  factory User.fromMap(Map<String, dynamic> map) {
+  factory User.fromMap(Map<String, dynamic> map, {String? id}) {
     final name = map['name'] as String?;
     String firstName = map['firstName'] ?? '';
     String lastName = map['lastName'] ?? '';
@@ -57,10 +57,10 @@ class User extends Equatable {
     }
 
     return User(
-      id: map['id'],
+      id: id ?? map['id'],
       firstName: firstName,
       lastName: lastName,
-      email: map['email'] ?? '',
+      email: map['email'],
       photoUrl: map['photoUrl'],
       lastSeen: lastSeen,
       isOnline: map['isOnline'] ?? false,

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:dartz/dartz.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
 import 'package:live_chat_app/domain/models/chat_conversation.dart';
 import 'package:live_chat_app/domain/models/chat_message.dart';
+import 'package:live_chat_app/domain/models/user.dart';
 import 'package:live_chat_app/domain/repositories/chat_repository.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
@@ -22,12 +23,46 @@ class ChatRepositoryImpl implements ChatRepository {
       _firestore.collection('conversations');
 
   CollectionReference get _messagesRef => _firestore.collection('messages');
+  CollectionReference get _usersRef => _firestore.collection('users');
 
   // Get current user ID or throw error if not authenticated
   String get _currentUserId {
     final user = _auth.currentUser;
     if (user == null) throw const UnexpectedFailure();
     return user.uid;
+  }
+
+  // Helper method to get participant information
+  Future<User?> _getParticipantInfo(String participantId) async {
+    try {
+      final doc = await _usersRef.doc(participantId).get();
+      if (doc.exists) {
+        return User.fromMap(
+          doc.data() as Map<String, dynamic>,
+          id: doc.id,
+        );
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Helper method to enrich conversation with current participant data
+  Future<ChatConversation> _enrichConversationWithParticipantData(
+    ChatConversation conversation,
+  ) async {
+    final participantId = conversation.participantId;
+    final participant = await _getParticipantInfo(participantId);
+
+    if (participant != null) {
+      return conversation.copyWith(
+        participantName: participant.fullName,
+        participantAvatar: participant.displayPhotoUrl,
+      );
+    }
+
+    return conversation;
   }
 
   @override
@@ -44,7 +79,13 @@ class ChatRepositoryImpl implements ChatRepository {
               ))
           .toList();
 
-      return Right(conversations);
+      // Enrich conversations with current participant data
+      final enrichedConversations = await Future.wait(
+        conversations
+            .map((conv) => _enrichConversationWithParticipantData(conv)),
+      );
+
+      return Right(enrichedConversations);
     } catch (e) {
       return const Left(UnexpectedFailure());
     }
@@ -153,14 +194,21 @@ class ChatRepositoryImpl implements ChatRepository {
       return _conversationsRef
           .where('participants', arrayContains: currentUserId)
           .snapshots()
-          .map((snapshot) {
+          .asyncMap((snapshot) async {
         final conversations = snapshot.docs
             .map((doc) => ChatConversation.fromMap(
                   doc.data() as Map<String, dynamic>,
                   id: doc.id,
                 ))
             .toList();
-        return Right(conversations);
+
+        // Enrich conversations with current participant data
+        final enrichedConversations = await Future.wait(
+          conversations
+              .map((conv) => _enrichConversationWithParticipantData(conv)),
+        );
+
+        return Right(enrichedConversations);
       });
     } catch (e) {
       return Stream.value(const Left(UnexpectedFailure()));

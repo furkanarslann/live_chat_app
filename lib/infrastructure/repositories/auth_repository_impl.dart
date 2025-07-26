@@ -99,7 +99,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (!userDoc.exists) return left(const InvalidCredentialsFailure());
 
-      final user = User.fromMap(userDoc.data()!);
+      final user = User.fromMap(userDoc.data()!, id: userDoc.id);
 
       // Update user's online status and last seen
       await _firestore.collection('users').doc(user.id).update({
@@ -153,7 +153,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return none();
       }
 
-      return some(User.fromMap(userDoc.data()!));
+      return some(User.fromMap(userDoc.data()!, id: userDoc.id));
     } catch (_) {
       return none();
     }
@@ -173,7 +173,7 @@ class AuthRepositoryImpl implements AuthRepository {
           return none();
         }
 
-        return some(User.fromMap(userDoc.data()!));
+        return some(User.fromMap(userDoc.data()!, id: userDoc.id));
       } catch (_) {
         return none();
       }

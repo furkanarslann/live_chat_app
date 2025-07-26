@@ -29,7 +29,7 @@ class UserRepositoryImpl implements UserRepository {
           .map((doc) {
         try {
           if (!doc.exists) return left(const UnexpectedFailure());
-          return right(User.fromMap(doc.data()!));
+          return right(User.fromMap(doc.data()!, id: doc.id));
         } catch (e) {
           return left(const UnexpectedFailure());
         }
