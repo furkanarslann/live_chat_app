@@ -42,12 +42,6 @@ class _ChatMessageInputState extends State<ChatMessageInput> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.emoji_emotions_outlined),
-              onPressed: () {
-                //TODO(Furkan): Implement emoji picker
-              },
-            ),
             Expanded(
               child: TextField(
                 controller: _messageController,
