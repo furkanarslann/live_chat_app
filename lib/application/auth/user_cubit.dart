@@ -42,7 +42,7 @@ class UserCubit extends Cubit<UserState> {
 
     // Optimistically update the state
     final updatedPreferences = user.chatPreferences.copyWith(
-      pinnedConversations: user.chatPreferences.isPinnedBy(conversationId)
+      pinnedConversations: user.chatPreferences.isPinned(conversationId)
           ? user.chatPreferences.pinnedConversations
               .where((id) => id != conversationId)
               .toList()
@@ -65,7 +65,7 @@ class UserCubit extends Cubit<UserState> {
 
     // Optimistically update the state
     final updatedPreferences = user.chatPreferences.copyWith(
-      archivedConversations: user.chatPreferences.isArchivedBy(conversationId)
+      archivedConversations: user.chatPreferences.isArchived(conversationId)
           ? user.chatPreferences.archivedConversations
               .where((id) => id != conversationId)
               .toList()

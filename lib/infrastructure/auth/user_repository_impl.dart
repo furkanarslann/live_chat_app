@@ -71,7 +71,7 @@ class UserRepositoryImpl implements UserRepository {
 
       final preferences =
           UserChatPreferences.fromMap(userData['chatPreferences'] ?? {});
-      final isPinned = preferences.isPinnedBy(conversationId);
+      final isPinned = preferences.isPinned(conversationId);
 
       final updatedPreferences = preferences.copyWith(
         pinnedConversations: isPinned
@@ -104,7 +104,7 @@ class UserRepositoryImpl implements UserRepository {
 
       final preferences =
           UserChatPreferences.fromMap(userData['chatPreferences'] ?? {});
-      final isArchived = preferences.isArchivedBy(conversationId);
+      final isArchived = preferences.isArchived(conversationId);
 
       final updatedPreferences = preferences.copyWith(
         archivedConversations: isArchived

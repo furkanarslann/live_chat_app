@@ -34,14 +34,14 @@ class ChatConversationTile extends StatelessWidget {
               context.read<UserCubit>().togglePinConversation(conversation.id);
             },
             backgroundColor:
-                currentUser.chatPreferences.isPinnedBy(conversation.id)
+                currentUser.chatPreferences.isPinned(conversation.id)
                     ? Colors.orange
                     : Colors.blue,
             foregroundColor: Colors.white,
-            icon: currentUser.chatPreferences.isPinnedBy(conversation.id)
+            icon: currentUser.chatPreferences.isPinned(conversation.id)
                 ? Icons.push_pin_outlined
                 : Icons.push_pin,
-            label: currentUser.chatPreferences.isPinnedBy(conversation.id)
+            label: currentUser.chatPreferences.isPinned(conversation.id)
                 ? context.tr.unpin
                 : context.tr.pin,
           ),
@@ -57,14 +57,14 @@ class ChatConversationTile extends StatelessWidget {
                   .toggleArchiveConversation(conversation.id);
             },
             backgroundColor:
-                currentUser.chatPreferences.isArchivedBy(conversation.id)
+                currentUser.chatPreferences.isArchived(conversation.id)
                     ? Colors.orange
                     : const Color(0xFF7BC043),
             foregroundColor: Colors.white,
-            icon: currentUser.chatPreferences.isArchivedBy(conversation.id)
+            icon: currentUser.chatPreferences.isArchived(conversation.id)
                 ? Icons.unarchive
                 : Icons.archive,
-            label: currentUser.chatPreferences.isArchivedBy(conversation.id)
+            label: currentUser.chatPreferences.isArchived(conversation.id)
                 ? context.tr.unarchive
                 : context.tr.archived,
           ),
@@ -109,7 +109,7 @@ class ChatConversationTileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPinned = currentUser.chatPreferences.isPinnedBy(conversation.id);
+    final isPinned = currentUser.chatPreferences.isPinned(conversation.id);
 
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, chatState) {

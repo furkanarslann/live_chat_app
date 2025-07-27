@@ -127,12 +127,14 @@ class _ChatListContent extends StatelessWidget {
             (conversations) {
               if (conversations.isEmpty) return const ChatEmptyContent();
 
-              final filteredConversations = state.getNonArchivedConversations(
+              final visibleConversations = state.getNonArchivedConversations(
                 currentUser,
               );
 
-              final archivedCount =
-                  conversations.length - filteredConversations.length;
+              final archivedCount = conversations.where((conversation) {
+                return currentUser.chatPreferences
+                    .isArchived(conversation.id);
+              }).length;
 
               return CustomScrollView(
                 slivers: [
@@ -153,13 +155,13 @@ class _ChatListContent extends StatelessWidget {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final conversation = filteredConversations[index];
+                        final conversation = visibleConversations[index];
                         return ChatConversationTile(
                           conversation: conversation,
                           currentUser: currentUser,
                         );
                       },
-                      childCount: filteredConversations.length,
+                      childCount: visibleConversations.length,
                     ),
                   ),
                 ],
@@ -198,7 +200,7 @@ class ArchivedConversationsPage extends StatelessWidget {
 
             final archivedConversations = conversations
                 .where((conversation) =>
-                    currentUser.chatPreferences.isArchivedBy(conversation.id))
+                    currentUser.chatPreferences.isArchived(conversation.id))
                 .toList();
 
             return Scaffold(

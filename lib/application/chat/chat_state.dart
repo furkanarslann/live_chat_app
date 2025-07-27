@@ -60,12 +60,12 @@ class ChatState extends Equatable {
         conversations.where((conv) => conv.lastMessage != null).toList();
 
     final nonArchived = conversationsWithMessages
-        .where((conv) => !currentUser.chatPreferences.isArchivedBy(conv.id))
+        .where((conv) => !currentUser.chatPreferences.isArchived(conv.id))
         .toList();
 
     nonArchived.sort((a, b) {
-      final aPinned = currentUser.chatPreferences.isPinnedBy(a.id);
-      final bPinned = currentUser.chatPreferences.isPinnedBy(b.id);
+      final aPinned = currentUser.chatPreferences.isPinned(a.id);
+      final bPinned = currentUser.chatPreferences.isPinned(b.id);
       if (aPinned != bPinned) return aPinned ? -1 : 1;
 
       final aTime = a.lastMessage?.timestamp ?? a.createdAt ?? DateTime(0);

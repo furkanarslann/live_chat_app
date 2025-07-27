@@ -24,10 +24,10 @@ class UserChatPreferences extends Equatable {
     };
   }
 
-  bool isPinnedBy(String conversationId) =>
+  bool isPinned(String conversationId) =>
       pinnedConversations.contains(conversationId);
 
-  bool isArchivedBy(String conversationId) =>
+  bool isArchived(String conversationId) =>
       archivedConversations.contains(conversationId);
 
   UserChatPreferences copyWith({
