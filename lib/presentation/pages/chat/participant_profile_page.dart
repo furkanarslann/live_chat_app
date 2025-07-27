@@ -3,9 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/domain/models/user.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_dialog_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 
-// TODO(Furkan): localize
 class ParticipantProfilePage extends StatelessWidget {
   final User participant;
 
@@ -19,7 +20,7 @@ class ParticipantProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Profile',
+          context.tr.profile,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         centerTitle: true,
@@ -103,7 +104,7 @@ class _OnlineStatusIndicator extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            isOnline ? 'Online' : 'Offline',
+            isOnline ? context.tr.online : context.tr.offline,
             style: TextStyle(
               color: isOnline ? Colors.green : Colors.grey,
               fontWeight: FontWeight.w500,
@@ -128,9 +129,9 @@ class _ActionButtons extends StatelessWidget {
           Icons.delete_outline_rounded,
           color: Colors.redAccent,
         ),
-        title: const Text(
-          'Clear Chat History',
-          style: TextStyle(
+        title: Text(
+          context.tr.clearChatHistory,
+          style: const TextStyle(
             color: Colors.redAccent,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -152,25 +153,8 @@ class _ActionButtons extends StatelessWidget {
         .findAncestorWidgetOfExactType<ParticipantProfilePage>()!
         .participant;
 
-    final shouldClear = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Chat History'),
-        content: Text(
-          'Are you sure you want to clear your chat history with ${participant.firstName}? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
-    );
+    final shouldClear =
+        await context.showClearChatDialog(participant.firstName);
 
     if (shouldClear == null || !shouldClear || !context.mounted) return;
 

@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../app_theme.dart';
-import '../extensions/build_context_translate_ext.dart';
 
-class SignOutDialog extends StatelessWidget {
-  const SignOutDialog({super.key});
+class ConfirmationDialog extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color iconColor;
+  final String cancelText;
+  final String actionText;
+  final VoidCallback? onCancelled;
+  final VoidCallback? onAction;
+  final bool isDestructive;
+
+  const ConfirmationDialog({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.iconColor,
+    required this.cancelText,
+    required this.actionText,
+    this.onCancelled,
+    this.onAction,
+    this.isDestructive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +61,13 @@ class SignOutDialog extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
-                              color: colorScheme.error.withValues(alpha: 0.1),
+                              color: iconColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              Icons.logout_rounded,
+                              icon,
                               size: 32,
-                              color: colorScheme.error,
+                              color: iconColor,
                             ),
                           ),
                         );
@@ -55,7 +75,7 @@ class SignOutDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: Spacing.md),
                     Text(
-                      context.tr.signOut,
+                      title,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
@@ -64,7 +84,7 @@ class SignOutDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: Spacing.sm),
                     Text(
-                      context.tr.signOutConfirmation,
+                      description,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurface.withValues(alpha: 0.7),
                         height: 1.4,
@@ -77,18 +97,24 @@ class SignOutDialog extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _DialogButton(
-                            text: context.tr.cancel,
+                            text: cancelText,
                             isOutlined: true,
-                            onPressed: () => Navigator.pop(context, false),
+                            onPressed: () {
+                              Navigator.pop(context, false);
+                              onCancelled?.call();
+                            },
                           ),
                         ),
                         const SizedBox(width: Spacing.sm),
                         Expanded(
                           child: _DialogButton(
-                            text: context.tr.signOut,
-                            isDestructive: true,
-                            textColor: context.colors.background,
-                            onPressed: () => Navigator.pop(context, true),
+                            text: actionText,
+                            isDestructive: isDestructive,
+                            textColor: isDestructive ? context.colors.background : null,
+                            onPressed: () {
+                              Navigator.pop(context, true);
+                              onAction?.call();
+                            },
                           ),
                         ),
                       ],
@@ -175,4 +201,4 @@ class _DialogButton extends StatelessWidget {
             ),
     );
   }
-}
+} 

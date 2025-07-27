@@ -252,5 +252,35 @@
   "noMessagesSubtitle": "Send a message to start the conversation!",
   "@noMessagesSubtitle": {
     "description": "Subtitle shown when there are no messages in a chat"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Title for user profile page"
+  },
+  "offline": "Offline",
+  "@offline": {
+    "description": "Offline status text"
+  },
+  "clearChatHistory": "Clear Chat History",
+  "@clearChatHistory": {
+    "description": "Action to clear chat history"
+  },
+  "clearChatHistoryTitle": "Clear Chat History",
+  "@clearChatHistoryTitle": {
+    "description": "Title for clear chat history dialog"
+  },
+  "clearChatHistoryMessage": "Are you sure you want to clear your chat history with {name}? This action cannot be undone.",
+  "@clearChatHistoryMessage": {
+    "description": "Confirmation message for clearing chat history",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "John"
+      }
+    }
+  },
+  "clear": "Clear",
+  "@clear": {
+    "description": "Action to clear/delete something"
   }
 }

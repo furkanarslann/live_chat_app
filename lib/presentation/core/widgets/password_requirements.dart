@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 
 class PasswordRequirements extends StatelessWidget {
   final String password;
@@ -116,7 +117,9 @@ class _RequirementTile extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onBackground.withValues(alpha: 0.8),
+              color: isMet
+                  ? context.colors.textPrimary
+                  : context.colors.textSecondary,
             ),
           ),
         ],

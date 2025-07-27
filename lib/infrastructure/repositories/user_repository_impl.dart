@@ -20,7 +20,9 @@ class UserRepositoryImpl implements UserRepository {
   Stream<Either<Failure, User>> watchCurrentUser() {
     try {
       final currentUser = _auth.currentUser;
-      if (currentUser == null) return Stream.value(left(const UnexpectedFailure()));
+      if (currentUser == null) {
+        return Stream.value(left(const UnexpectedFailure()));
+      }
 
       return _firestore
           .collection('users')
@@ -40,7 +42,8 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> updateChatPreferences(UserChatPreferences preferences) async {
+  Future<Either<Failure, Unit>> updateChatPreferences(
+      UserChatPreferences preferences) async {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser == null) return left(const UnexpectedFailure());
@@ -56,20 +59,25 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> togglePinConversation(String conversationId) async {
+  Future<Either<Failure, Unit>> togglePinConversation(
+      String conversationId) async {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser == null) return left(const UnexpectedFailure());
 
-      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+      final userDoc =
+          await _firestore.collection('users').doc(currentUser.uid).get();
       final userData = userDoc.data() ?? {};
-      
-      final preferences = UserChatPreferences.fromMap(userData['chatPreferences'] ?? {});
+
+      final preferences =
+          UserChatPreferences.fromMap(userData['chatPreferences'] ?? {});
       final isPinned = preferences.isPinnedBy(conversationId);
 
       final updatedPreferences = preferences.copyWith(
         pinnedConversations: isPinned
-            ? preferences.pinnedConversations.where((id) => id != conversationId).toList()
+            ? preferences.pinnedConversations
+                .where((id) => id != conversationId)
+                .toList()
             : [...preferences.pinnedConversations, conversationId],
       );
 
@@ -79,29 +87,35 @@ class UserRepositoryImpl implements UserRepository {
 
       return right(unit);
     } catch (e) {
-      print('Error toggling pin: $e');
       return left(const UnexpectedFailure());
     }
   }
 
   @override
-  Future<Either<Failure, Unit>> toggleArchiveConversation(String conversationId) async {
+  Future<Either<Failure, Unit>> toggleArchiveConversation(
+      String conversationId) async {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser == null) return left(const UnexpectedFailure());
 
-      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+      final userDoc =
+          await _firestore.collection('users').doc(currentUser.uid).get();
       final userData = userDoc.data() ?? {};
-      
-      final preferences = UserChatPreferences.fromMap(userData['chatPreferences'] ?? {});
+
+      final preferences =
+          UserChatPreferences.fromMap(userData['chatPreferences'] ?? {});
       final isArchived = preferences.isArchivedBy(conversationId);
 
       final updatedPreferences = preferences.copyWith(
         archivedConversations: isArchived
-            ? preferences.archivedConversations.where((id) => id != conversationId).toList()
+            ? preferences.archivedConversations
+                .where((id) => id != conversationId)
+                .toList()
             : [...preferences.archivedConversations, conversationId],
         // Unpin when archiving
-        pinnedConversations: preferences.pinnedConversations.where((id) => id != conversationId).toList(),
+        pinnedConversations: preferences.pinnedConversations
+            .where((id) => id != conversationId)
+            .toList(),
       );
 
       await _firestore.collection('users').doc(currentUser.uid).update({
@@ -110,8 +124,7 @@ class UserRepositoryImpl implements UserRepository {
 
       return right(unit);
     } catch (e) {
-      print('Error toggling archive: $e');
       return left(const UnexpectedFailure());
     }
   }
-} 
+}

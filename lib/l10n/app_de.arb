@@ -89,7 +89,7 @@
   "noOtherUsers": "Keine anderen Benutzer gefunden",
   "noUsersMatchSearch": "Keine Benutzer entsprechen Ihrer Suche",
   "errorLoadingUsers": "Fehler: {error}",
-    "@errorLoadingUsers": {
+  "@errorLoadingUsers": {
     "placeholders": {
       "error": {
         "type": "String",
@@ -98,5 +98,19 @@
     }
   },
   "noMessagesTitle": "Noch keine Nachrichten",
-  "noMessagesSubtitle": "Sende eine Nachricht, um die Unterhaltung zu beginnen!"
+  "noMessagesSubtitle": "Sende eine Nachricht, um die Unterhaltung zu beginnen!",
+  "profile": "Profil",
+  "offline": "Offline",
+  "clearChatHistory": "Chat-Verlauf löschen",
+  "clearChatHistoryTitle": "Chat-Verlauf löschen",
+  "clearChatHistoryMessage": "Sind Sie sicher, dass Sie Ihren Chat-Verlauf mit {name} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "@clearChatHistoryMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Max Mustermann"
+      }
+    }
+  },
+  "clear": "Löschen"
 }
