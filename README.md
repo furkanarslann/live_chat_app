@@ -1,16 +1,10 @@
 # live_chat_app
 
-A new Flutter project.
 
-## Getting Started
+## Authentication
+https://github.com/user-attachments/assets/c496d64e-1a27-4b20-b097-d8d332b32287
 
-This project is a starting point for a Flutter application.
+## Basic Chatting
+https://github.com/user-attachments/assets/bb126d57-0d41-4423-8fa3-af2efdf68067
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
