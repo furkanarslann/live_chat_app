@@ -19,11 +19,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void initialize() {
-    // Fetch initial conversations and their participants
-    _fetchConversationParticipants();
-    // Load unread message counts
-    _loadUnreadMessageCounts();
-    // Start watching conversations
+    // Start watching conversations first
     _watchConversations();
   }
 
@@ -34,6 +30,9 @@ class ChatCubit extends Cubit<ChatState> {
         emit(state.copyWith(
           failureOrConversationsOpt: Some(failureOrConversations),
         ));
+
+        // Fetch participants for conversations (including new ones)
+        await _fetchConversationParticipants();
 
         // Refresh unread counts when conversations are updated
         await _loadUnreadMessageCounts();
@@ -54,14 +53,6 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> _fetchConversationParticipants() async {
-    // Ensure conversations are loaded first
-    if (state.failureOrConversationsOpt.isNone()) {
-      final failOrConversations = await _chatRepository.getConversations();
-      emit(
-        state.copyWith(failureOrConversationsOpt: Some(failOrConversations)),
-      );
-    }
-
     final conversations = state.conversationsOrEmpty;
     if (conversations.isEmpty) {
       emit(state.copyWith(participantsMap: <String, User>{}));
@@ -78,17 +69,26 @@ class ChatCubit extends Cubit<ChatState> {
       );
     }
 
-    // Batch load all participants efficiently
-    if (allParticipantIds.isNotEmpty) {
+    // Filter out participants that are already loaded
+    final newParticipantIds = allParticipantIds
+        .where((id) => !state.participantsMap.containsKey(id))
+        .toList();
+
+    // Only load participants that aren't already in the map
+    if (newParticipantIds.isNotEmpty) {
       final batchParticipants =
           await _chatRepository.getConversationParticipants(
-        allParticipantIds.toList(),
+        newParticipantIds,
       );
+
+      // Merge new participants with existing ones
+      final updatedParticipantsMap =
+          Map<String, User>.from(state.participantsMap);
+      updatedParticipantsMap.addAll(batchParticipants);
+
       emit(state.copyWith(
-        participantsMap: Map<String, User>.from(batchParticipants),
+        participantsMap: updatedParticipantsMap,
       ));
-    } else {
-      emit(state.copyWith(participantsMap: <String, User>{}));
     }
   }
 
@@ -111,6 +111,11 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> loadSingleParticipant(String participantId) async {
+    // Skip if participant is already loaded
+    if (state.participantsMap.containsKey(participantId)) {
+      return;
+    }
+
     final user =
         await _chatRepository.getConversationParticipants([participantId]);
     if (user.isNotEmpty) {
