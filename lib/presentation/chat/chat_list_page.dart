@@ -109,6 +109,11 @@ class _ChatListContent extends StatelessWidget {
 
   const _ChatListContent({required this.currentUser});
 
+  Future<void> _refreshConversations(BuildContext context) async {
+    final chatCubit = context.read<ChatCubit>();
+    await chatCubit.refreshConversations(currentUserId: context.userId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatCubit, ChatState>(
@@ -132,39 +137,42 @@ class _ChatListContent extends StatelessWidget {
               );
 
               final archivedCount = conversations.where((conversation) {
-                return currentUser.chatPreferences
-                    .isArchived(conversation.id);
+                return currentUser.chatPreferences.isArchived(conversation.id);
               }).length;
 
-              return CustomScrollView(
-                slivers: [
-                  if (archivedCount > 0)
-                    SliverToBoxAdapter(
-                      child: ChatArchivedButton(
-                        count: archivedCount,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ArchivedConversationsPage(),
-                            ),
+              return RefreshIndicator(
+                onRefresh: () => _refreshConversations(context),
+                child: CustomScrollView(
+                  slivers: [
+                    if (archivedCount > 0)
+                      SliverToBoxAdapter(
+                        child: ChatArchivedButton(
+                          count: archivedCount,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const ArchivedConversationsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final conversation = visibleConversations[index];
+                          return ChatConversationTile(
+                            conversation: conversation,
+                            currentUser: currentUser,
                           );
                         },
+                        childCount: visibleConversations.length,
                       ),
                     ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final conversation = visibleConversations[index];
-                        return ChatConversationTile(
-                          conversation: conversation,
-                          currentUser: currentUser,
-                        );
-                      },
-                      childCount: visibleConversations.length,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),

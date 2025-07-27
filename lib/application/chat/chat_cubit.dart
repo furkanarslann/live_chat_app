@@ -14,10 +14,6 @@ class ChatCubit extends Cubit<ChatState> {
     _watchConversations();
   }
 
-  void selectConversation(String conversationId) {
-    emit(state.copyWith(selectedConversationIdOpt: Some(conversationId)));
-  }
-
   void _watchConversations() {
     _conversationsSubscription?.cancel();
     _conversationsSubscription = _repository.watchConversations().listen(
@@ -30,6 +26,18 @@ class ChatCubit extends Cubit<ChatState> {
         await loadUnreadMessageCounts();
       },
     );
+  }
+
+  Future<void> clearConversationChatHistory(String conversationId) async {
+    await _repository.clearConversationChatHistory(conversationId);
+  }
+
+  Future<void> deleteConversation(String conversationId) async {
+    await _repository.deleteConversation(conversationId);
+  }
+
+  void changeFilter(ChatFilter filter) {
+    emit(state.copyWith(activeFilter: filter));
   }
 
   Future<void> loadParticipantsForConversations({
@@ -74,6 +82,10 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> loadUnreadMessageCounts() async {
     final unreadCountMap = await _repository.getUnreadMessagesCount();
     emit(state.copyWith(unreadCountMap: unreadCountMap));
+  }
+
+  void selectConversation(String conversationId) {
+    emit(state.copyWith(selectedConversationIdOpt: Some(conversationId)));
   }
 
   Future<void> loadSingleParticipant(String participantId) async {
@@ -145,16 +157,37 @@ class ChatCubit extends Cubit<ChatState> {
     await _repository.markConversationMessagesAsRead(conversationId);
   }
 
-  Future<void> clearConversationChatHistory(String conversationId) async {
-    await _repository.clearConversationChatHistory(conversationId);
-  }
+  Future<void> refreshConversations({required String currentUserId}) async {
+    // Refetch conversations and participants
+    final failureOrConversations = await _repository.getConversations();
+    emit(state.copyWith(
+      failureOrConversationsOpt: Some(failureOrConversations),
+    ));
 
-  Future<void> deleteConversation(String conversationId) async {
-    await _repository.deleteConversation(conversationId);
-  }
+    // Refresh unread counts
+    await loadUnreadMessageCounts();
 
-  void changeFilter(ChatFilter filter) {
-    emit(state.copyWith(activeFilter: filter));
+    // Reload participants for the updated conversations
+    final conversations = state.conversationsOrEmpty;
+    if (conversations.isNotEmpty) {
+      final allParticipantIds = <String>{};
+      for (final conversation in conversations) {
+        allParticipantIds.addAll(
+          conversation.participants.where((participantId) {
+            return participantId != currentUserId;
+          }),
+        );
+      }
+
+      if (allParticipantIds.isNotEmpty) {
+        final batchParticipants = await _repository.getConversationParticipants(
+          allParticipantIds.toList(),
+        );
+        emit(state.copyWith(
+          participantsMap: Map<String, User>.from(batchParticipants),
+        ));
+      }
+    }
   }
 
   Future<void> clearErrorState() async {
