@@ -80,12 +80,9 @@ class CreateChatCubit extends Cubit<CreateChatState> {
           .get();
 
       if (!conversationDoc.exists) {
-        // Create new conversation with current participant information
+        // Create new conversation
         final conversation = ChatConversation(
           id: conversationId,
-          participantId: user.id,
-          participantName: user.fullName,
-          participantAvatar: user.displayPhotoUrl,
           participants: [currentUserId, user.id],
         );
 
@@ -101,33 +98,19 @@ class CreateChatCubit extends Cubit<CreateChatState> {
 
         return some(conversation);
       } else {
-        // Return existing conversation with updated participant information
+        // Return existing conversation
         final existingConversation = ChatConversation.fromMap(
           conversationDoc.data()!,
           id: conversationDoc.id,
         );
-
-        // Update the conversation with current participant information
-        final updatedConversation = existingConversation.copyWith(
-          participantName: user.fullName,
-          participantAvatar: user.displayPhotoUrl,
-        );
-
-        // Update the conversation document with current participant info
-        await _firestore
-            .collection('conversations')
-            .doc(conversationId)
-            .update({
-          'participantName': user.fullName,
-          'participantAvatar': user.displayPhotoUrl,
-        });
 
         emit(state.copyWith(
           isLoading: false,
           failureOrSuccessOpt: some(right(unit)),
         ));
 
-        return some(updatedConversation);
+        // No need to update participant information since it's now dynamic
+        return some(existingConversation);
       }
     } catch (e) {
       emit(state.copyWith(

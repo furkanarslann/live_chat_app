@@ -19,21 +19,17 @@ class ChatRepositoryImpl implements ChatRepository {
         _auth = auth ?? FirebaseAuth.instance;
 
   // Collection references
-  CollectionReference get _conversationsRef =>
-      _firestore.collection('conversations');
-
-  CollectionReference get _messagesRef => _firestore.collection('messages');
-  CollectionReference get _usersRef => _firestore.collection('users');
-
-  // Get current user ID or throw error if not authenticated
-  String get _currentUserId {
-    final user = _auth.currentUser;
-    if (user == null) throw const UnexpectedFailure();
-    return user.uid;
+  CollectionReference get _conversationsRef {
+    return _firestore.collection('conversations');
   }
 
-  // Helper method to get participant information
-  Future<User?> _getParticipantInfo(String participantId) async {
+  CollectionReference get _messagesRef {
+    return _firestore.collection('messages');
+  }
+
+  CollectionReference get _usersRef => _firestore.collection('users');
+
+  Future<User?> _getConversationParticipant(String participantId) async {
     try {
       final doc = await _usersRef.doc(participantId).get();
       if (doc.exists) {
@@ -48,21 +44,46 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
-  // Helper method to enrich conversation with current participant data
-  Future<ChatConversation> _enrichConversationWithParticipantData(
-    ChatConversation conversation,
+  /// Batch load participants for multiple conversations efficiently
+  /// Uses Firestore's whereIn with batching to handle the 10-item limit
+  @override
+  Future<Map<String, User>> getConversationParticipants(
+    List<String> participantIds,
   ) async {
-    final participantId = conversation.participantId;
-    final participant = await _getParticipantInfo(participantId);
+    final Map<String, User> userMap = {};
 
-    if (participant != null) {
-      return conversation.copyWith(
-        participantName: participant.fullName,
-        participantAvatar: participant.displayPhotoUrl,
-      );
+    // Batch by 10 due to Firestore's whereIn limit
+    for (var i = 0; i < participantIds.length; i += 10) {
+      final batch = participantIds.skip(i).take(10).toList();
+      try {
+        final userSnap =
+            await _usersRef.where(FieldPath.documentId, whereIn: batch).get();
+
+        for (final doc in userSnap.docs) {
+          userMap[doc.id] = User.fromMap(
+            doc.data() as Map<String, dynamic>,
+            id: doc.id,
+          );
+        }
+      } catch (e) {
+        // If whereIn fails (e.g., empty array), fall back to individual requests
+        for (final participantId in batch) {
+          final user = await _getConversationParticipant(participantId);
+          if (user != null) {
+            userMap[participantId] = user;
+          }
+        }
+      }
     }
 
-    return conversation;
+    return userMap;
+  }
+
+  // Get current user ID or throw error if not authenticated
+  String get _currentUserId {
+    final user = _auth.currentUser;
+    if (user == null) throw const UnexpectedFailure();
+    return user.uid;
   }
 
   @override
@@ -79,13 +100,7 @@ class ChatRepositoryImpl implements ChatRepository {
               ))
           .toList();
 
-      // Enrich conversations with current participant data
-      final enrichedConversations = await Future.wait(
-        conversations
-            .map((conv) => _enrichConversationWithParticipantData(conv)),
-      );
-
-      return Right(enrichedConversations);
+      return Right(conversations);
     } catch (e) {
       return const Left(UnexpectedFailure());
     }
@@ -202,13 +217,7 @@ class ChatRepositoryImpl implements ChatRepository {
                 ))
             .toList();
 
-        // Enrich conversations with current participant data
-        final enrichedConversations = await Future.wait(
-          conversations
-              .map((conv) => _enrichConversationWithParticipantData(conv)),
-        );
-
-        return Right(enrichedConversations);
+        return Right(conversations);
       });
     } catch (e) {
       return Stream.value(const Left(UnexpectedFailure()));
@@ -216,7 +225,8 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> clearChatHistory(String conversationId) async {
+  Future<Either<Failure, Unit>> clearConversationChatHistory(
+      String conversationId) async {
     try {
       // Delete all messages in the conversation
       final messagesSnapshot = await _messagesRef

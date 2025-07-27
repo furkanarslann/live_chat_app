@@ -8,6 +8,7 @@ import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
+import 'package:live_chat_app/presentation/core/widgets/sign_out_dialog.dart';
 import 'package:live_chat_app/presentation/pages/settings/language_settings_page.dart';
 import 'package:live_chat_app/presentation/pages/settings/theme_settings_page.dart';
 
@@ -117,27 +118,21 @@ class _AccountSection extends StatelessWidget {
   }
 
   Future<void> _showSignOutConfirmationDialog(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGeneralDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.tr.signOut),
-        content: Text(context.tr.signOutConfirmation),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.tr.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              context.tr.signOut,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
-          ),
-        ],
-      ),
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const SignOutDialog();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
     );
 
     if (confirmed == true) {

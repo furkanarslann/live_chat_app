@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
-import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/pages/chat/chat_list_page.dart';
 import 'package:live_chat_app/presentation/pages/settings/settings_page.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
+import 'package:live_chat_app/restartable_app.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,10 +33,8 @@ class _HomePageState extends State<HomePage> {
           current.status == AuthStatus.unauthenticated,
       listener: (context, state) {
         if (state.status == AuthStatus.unauthenticated) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.login,
-            (route) => false,
-          );
+          // We're restarting the app to reset all states for a fresh start.
+          RestartableApp.restartApp(context);
         }
       },
       child: Scaffold(

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../../../application/auth/user_cubit.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
+import '../../../domain/models/user.dart';
 import '../../../application/chat/create_chat_cubit.dart';
 import '../../../domain/models/chat_conversation.dart';
-import '../../../domain/models/user.dart';
 import '../../core/app_theme.dart';
 import '../../core/extensions/build_context_translate_ext.dart';
 import '../../core/widgets/user_avatar.dart';
+import '../../core/widgets/conversation_tile_shimmer.dart';
 import 'chat_page.dart';
 import 'create_new_chat_bottom_sheet.dart';
 import '../../../setup_dependencies.dart';
@@ -33,6 +35,16 @@ class _ChatListPageState extends State<ChatListPage> {
         child: const CreateNewChatBottomSheet(),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      context
+          .read<ChatCubit>()
+          .loadParticipantsForConversations(currentUserId: context.userId);
+    });
   }
 
   @override
@@ -578,75 +590,83 @@ class _ConversationTileContent extends StatelessWidget {
     required this.currentUser,
     required this.onTap,
   });
-
   @override
   Widget build(BuildContext context) {
     final isPinned = currentUser.chatPreferences.isPinnedBy(conversation.id);
     final unreadCount =
         currentUser.chatPreferences.getUnreadCount(conversation.id);
 
-    return ListTile(
-      leading: UserAvatar(
-        imageUrl: conversation.participantAvatar,
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              conversation.participantName,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: unreadCount > 0 ? FontWeight.bold : null,
-                  ),
-            ),
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, chatState) {
+        final participantId = conversation.getParticipantId(currentUser);
+        final participant = chatState.findParticipant(participantId);
+        if (participant == null) return const ConversationTileShimmer();
+
+        return ListTile(
+          leading: UserAvatar(
+            imageUrl: participant.displayPhotoUrl,
           ),
-          if (isPinned)
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Icon(
-                Icons.push_pin,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  participant.fullName,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: unreadCount > 0 ? FontWeight.bold : null,
+                      ),
+                ),
               ),
-            ),
-        ],
-      ),
-      subtitle: conversation.lastMessage != null
-          ? Text(
-              conversation.lastMessage!.content,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: unreadCount > 0 ? FontWeight.bold : null,
+              if (isPinned)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Icon(
+                    Icons.push_pin,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-            )
-          : null,
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (conversation.lastMessage != null)
-            Text(
-              _formatTime(conversation.lastMessage!.timestamp),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          if (unreadCount > 0)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                unreadCount.toString(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-              ),
-            ),
-        ],
-      ),
-      onTap: onTap,
+                ),
+            ],
+          ),
+          subtitle: conversation.lastMessage != null
+              ? Text(
+                  conversation.lastMessage!.content,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: unreadCount > 0 ? FontWeight.bold : null,
+                      ),
+                )
+              : null,
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (conversation.lastMessage != null)
+                Text(
+                  _formatTime(conversation.lastMessage!.timestamp),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              if (unreadCount > 0)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    unreadCount.toString(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                  ),
+                ),
+            ],
+          ),
+          onTap: onTap,
+        );
+      },
     );
   }
 

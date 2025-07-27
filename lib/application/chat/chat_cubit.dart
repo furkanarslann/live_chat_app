@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
-import '../../domain/repositories/chat_repository.dart';
+import 'package:live_chat_app/domain/repositories/chat_repository.dart';
+import 'package:live_chat_app/domain/models/user.dart';
 import 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
@@ -13,19 +14,67 @@ class ChatCubit extends Cubit<ChatState> {
     _watchConversations();
   }
 
-  Future<void> selectConversation(String conversationId) async {
+  void selectConversation(String conversationId) {
     emit(state.copyWith(selectedConversationIdOpt: Some(conversationId)));
   }
 
   void _watchConversations() {
     _conversationsSubscription?.cancel();
     _conversationsSubscription = _repository.watchConversations().listen(
-      (failureOrConversations) {
+      (failureOrConversations) async {
         emit(state.copyWith(
           failureOrConversationsOpt: Some(failureOrConversations),
         ));
       },
     );
+  }
+
+  Future<void> loadParticipantsForConversations({
+    required String currentUserId,
+  }) async {
+    // Ensure conversations are loaded first
+    if (state.failureOrConversationsOpt.isNone()) {
+      final failOrConversations = await _repository.getConversations();
+      emit(
+        state.copyWith(failureOrConversationsOpt: Some(failOrConversations)),
+      );
+    }
+
+    final conversations = state.conversationsOrEmpty;
+    if (conversations.isEmpty) {
+      emit(state.copyWith(participantsMap: <String, User>{}));
+      return;
+    }
+
+    // Extract all unique participant IDs from all conversations, excluding current user
+    final allParticipantIds = <String>{};
+    for (final conversation in conversations) {
+      allParticipantIds.addAll(
+        conversation.participants.where((participantId) {
+          return participantId != currentUserId;
+        }),
+      );
+    }
+
+    // Batch load all participants efficiently
+    if (allParticipantIds.isNotEmpty) {
+      final batchParticipants = await _repository.getConversationParticipants(
+        allParticipantIds.toList(),
+      );
+      emit(state.copyWith(
+          participantsMap: Map<String, User>.from(batchParticipants)));
+    } else {
+      emit(state.copyWith(participantsMap: <String, User>{}));
+    }
+  }
+
+  Future<void> loadSingleParticipant(String participantId) async {
+    final user = await _repository.getConversationParticipants([participantId]);
+    if (user.isNotEmpty) {
+      emit(state.copyWith(
+        participantsMap: {...state.participantsMap, ...user},
+      ));
+    }
   }
 
   Future<void> watchSelectedConversationMessages() async {
@@ -78,8 +127,8 @@ class ChatCubit extends Cubit<ChatState> {
     // TODO(Furkan): Handle mark message as read
   }
 
-  Future<void> clearChatHistory(String conversationId) async {
-    await _repository.clearChatHistory(conversationId);
+  Future<void> clearConversationChatHistory(String conversationId) async {
+    await _repository.clearConversationChatHistory(conversationId);
   }
 
   Future<void> deleteConversation(String conversationId) async {

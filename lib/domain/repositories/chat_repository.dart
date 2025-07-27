@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:live_chat_app/domain/models/user.dart';
 import '../core/failures.dart';
 import '../models/chat_conversation.dart';
 import '../models/chat_message.dart';
@@ -6,6 +7,13 @@ import '../models/chat_message.dart';
 abstract class ChatRepository {
   Future<Either<Failure, List<ChatConversation>>> getConversations();
   Stream<Either<Failure, List<ChatConversation>>> watchConversations();
+  Future<Either<Failure, Unit>> deleteConversation(String conversationId);
+  Future<Map<String, User>> getConversationParticipants(
+    List<String> participantIds,
+  );
+  Future<Either<Failure, Unit>> clearConversationChatHistory(
+    String conversationId,
+  );
 
   Stream<Either<Failure, List<ChatMessage>>> watchMessages(
     String conversationId,
@@ -17,7 +25,4 @@ abstract class ChatRepository {
     required String conversationId,
   });
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId);
-
-  Future<Either<Failure, Unit>> clearChatHistory(String conversationId);
-  Future<Either<Failure, Unit>> deleteConversation(String conversationId);
 }

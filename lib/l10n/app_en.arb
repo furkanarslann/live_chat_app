@@ -96,6 +96,10 @@
   "@errorOccured": {
     "description": "Error message with placeholder"
   },
+  "loading": "Loading...",
+  "@loading": {
+    "description": "Loading text shown while content is being fetched"
+  },
   "archived": "Archived",
   "@archived": {
     "description": "Archived chats button text"

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
-import 'package:live_chat_app/domain/models/chat_conversation.dart';
+import 'package:live_chat_app/domain/models/user.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 
+// TODO(Furkan): localize
 class ParticipantProfilePage extends StatelessWidget {
-  final ChatConversation conversation;
+  final User participant;
 
   const ParticipantProfilePage({
     super.key,
-    required this.conversation,
+    required this.participant,
   });
 
   @override
@@ -42,23 +44,23 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final conversation = context
+    final participant = context
         .findAncestorWidgetOfExactType<ParticipantProfilePage>()!
-        .conversation;
+        .participant;
 
     return Center(
       child: Column(
         children: [
           Hero(
-            tag: 'avatar_${conversation.participantId}',
+            tag: 'avatar_${participant.id}',
             child: UserAvatar(
               radius: 60,
-              imageUrl: conversation.participantAvatar,
+              imageUrl: participant.displayPhotoUrl,
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            conversation.participantName,
+            participant.fullName,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -76,9 +78,7 @@ class _ProfileHeader extends StatelessWidget {
 class _OnlineStatusIndicator extends StatelessWidget {
   final bool isOnline;
 
-  const _OnlineStatusIndicator({
-    required this.isOnline,
-  });
+  const _OnlineStatusIndicator({required this.isOnline});
 
   @override
   Widget build(BuildContext context) {
@@ -148,16 +148,16 @@ class _ActionButtons extends StatelessWidget {
   }
 
   Future<void> _showClearChatDialog(BuildContext context) async {
-    final conversation = context
+    final participant = context
         .findAncestorWidgetOfExactType<ParticipantProfilePage>()!
-        .conversation;
+        .participant;
 
     final shouldClear = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Chat History'),
         content: Text(
-          'Are you sure you want to clear your chat history with ${conversation.participantName}? This action cannot be undone.',
+          'Are you sure you want to clear your chat history with ${participant.firstName}? This action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -174,6 +174,13 @@ class _ActionButtons extends StatelessWidget {
 
     if (shouldClear == null || !shouldClear || !context.mounted) return;
 
-    await context.read<ChatCubit>().clearChatHistory(conversation.id);
+    final userId = context.userId;
+    final participantId = participant.id;
+    final ids = [userId, participantId]..sort();
+    final conversationId = ids.join('_');
+
+    await context
+        .read<ChatCubit>()
+        .clearConversationChatHistory(conversationId);
   }
 }

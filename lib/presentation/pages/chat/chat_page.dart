@@ -30,8 +30,14 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final chatCubit = context.read<ChatCubit>();
-      await chatCubit.selectConversation(widget.conversation.id);
-      await chatCubit.watchSelectedConversationMessages();
+      chatCubit.selectConversation(widget.conversation.id);
+
+      final participantId = widget.conversation.getParticipantId(
+        context.currentUser,
+      );
+      await chatCubit.loadSingleParticipant(participantId);
+
+      chatCubit.watchSelectedConversationMessages();
     });
   }
 
@@ -43,103 +49,126 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ParticipantProfilePage(
-                  conversation: widget.conversation,
-                ),
-              ),
-            );
-          },
-          child: Row(
-            children: [
-              UserAvatar(
-                imageUrl: widget.conversation.participantAvatar,
-                radius: 20,
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.conversation.participantName,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  // TODO(Furkan): Show online status from user model
-                  if (true)
-                    Text(
-                      context.tr.online,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.green,
-                          ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: BlocListener<ChatCubit, ChatState>(
-        listenWhen: (previous, current) =>
-            previous.failOrSendSuccessOpt != current.failOrSendSuccessOpt,
-        listener: (context, state) {
-          state.failOrSendSuccessOpt.fold(
-            () {},
-            (failureOrSuccess) => failureOrSuccess.fold(
-              (failure) {
-                // Show error message
-                GlassySnackBar.show(
-                  context,
-                  message: context.tr.errorOccured,
-                  type: GlassySnackBarType.failure,
-                );
-                // Clear error state after showing message
-                context.read<ChatCubit>().clearErrorState();
-              },
-              (success) {
-                // Message sent successfully - no need to show anything
-                // Clear success state
-                context.read<ChatCubit>().clearErrorState();
-              },
-            ),
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, state) {
+        final participant = state.findParticipant(
+          widget.conversation.getParticipantId(context.currentUser),
+        );
+
+        if (participant == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           );
-        },
-        child: Column(
-          children: [
-            Expanded(
-              child: BlocBuilder<ChatCubit, ChatState>(
-                builder: (context, state) {
-                  return state.failureOrMessagesOpt.fold(
-                    () => const Center(child: CircularProgressIndicator()),
-                    (failureOrMessages) => failureOrMessages.fold(
-                      (failure) => Center(
-                        child: Text(
-                          context.tr.errorOccured,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Builder(
+              builder: (context) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ParticipantProfilePage(
+                          participant: participant,
                         ),
                       ),
-                      (messages) => messages.isEmpty
-                          ? const _EmptyChatContent()
-                          : _FilledChatContent(
-                              conversation: widget.conversation,
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      UserAvatar(
+                        imageUrl: participant.displayPhotoUrl,
+                        radius: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            participant.fullName,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          // TODO(Furkan): Show online status from user model
+                          if (true)
+                            Text(
+                              context.tr.online,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.green,
+                                  ),
                             ),
-                    ),
-                  );
-                },
-              ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            _buildMessageInput(),
-          ],
-        ),
-      ),
+          ),
+          body: BlocListener<ChatCubit, ChatState>(
+            listenWhen: (previous, current) =>
+                previous.failOrSendSuccessOpt != current.failOrSendSuccessOpt,
+            listener: (context, state) {
+              state.failOrSendSuccessOpt.fold(
+                () {},
+                (failureOrSuccess) => failureOrSuccess.fold(
+                  (failure) {
+                    // Show error message
+                    GlassySnackBar.show(
+                      context,
+                      message: context.tr.errorOccured,
+                      type: GlassySnackBarType.failure,
+                    );
+                    // Clear error state after showing message
+                    context.read<ChatCubit>().clearErrorState();
+                  },
+                  (success) {
+                    // Message sent successfully - no need to show anything
+                    // Clear success state
+                    context.read<ChatCubit>().clearErrorState();
+                  },
+                ),
+              );
+            },
+            child: Column(
+              children: [
+                Expanded(
+                  child: BlocBuilder<ChatCubit, ChatState>(
+                    builder: (context, state) {
+                      return state.failureOrMessagesOpt.fold(
+                        () => const Center(child: CircularProgressIndicator()),
+                        (failureOrMessages) => failureOrMessages.fold(
+                          (failure) => Center(
+                            child: Text(
+                              context.tr.errorOccured,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                            ),
+                          ),
+                          (messages) => messages.isEmpty
+                              ? const _EmptyChatContent()
+                              : _FilledChatContent(
+                                  conversation: widget.conversation,
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                _buildMessageInput(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -196,7 +225,8 @@ class _ChatPageState extends State<ChatPage> {
                           if (_messageController.text.trim().isNotEmpty) {
                             context.read<ChatCubit>().sendMessage(
                                   _messageController.text.trim(),
-                                  widget.conversation.participantId,
+                                  widget.conversation
+                                      .getParticipantId(context.currentUser),
                                 );
                             _messageController.clear();
                           }
@@ -272,10 +302,15 @@ class _FilledChatContentState extends State<_FilledChatContent> {
             final message = messages[index];
             final isMe = message.senderId == context.userId;
 
+            final participantId =
+                widget.conversation.getParticipantId(context.currentUser);
+            final participant = state.findParticipant(participantId)!;
+            final participantAvatar = participant.displayPhotoUrl;
+
             return _MessageBubble(
               message: message,
               isMe: isMe,
-              avatar: widget.conversation.participantAvatar,
+              avatar: participantAvatar,
             );
           },
         );
