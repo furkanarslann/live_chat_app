@@ -462,10 +462,14 @@ class _MessageBubble extends StatelessWidget {
                       ),
                       if (isMe) ...[
                         const SizedBox(width: 4),
-                        _MessageReadStatus(
+                        MessageReadStatus(
                           isRead: message.isRead,
                           isMe: isMe,
                           isPending: isPending,
+                          sentColor: Theme.of(context)
+                              .colorScheme
+                              .onPrimary
+                              .withValues(alpha: 0.7),
                         ),
                       ],
                     ],
@@ -494,15 +498,18 @@ class _MessageBubble extends StatelessWidget {
 }
 
 /// Widget to display message read status with appropriate icons and colors
-class _MessageReadStatus extends StatelessWidget {
+class MessageReadStatus extends StatelessWidget {
   final bool isRead;
   final bool isMe;
   final bool isPending;
+  final Color sentColor;
 
-  const _MessageReadStatus({
+  const MessageReadStatus({
+    super.key,
     required this.isRead,
     required this.isMe,
     this.isPending = false,
+    this.sentColor = Colors.grey,
   });
 
   @override
@@ -554,13 +561,10 @@ class _MessageReadStatus extends StatelessWidget {
   }
 
   Color _getReadStatusColor(BuildContext context, bool isRead) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     if (isRead) {
       return Colors.lightBlueAccent;
     } else {
-      // Sent but not read: Gray color
-      return colorScheme.onPrimary.withValues(alpha: 0.7);
+      return sentColor;
     }
   }
 

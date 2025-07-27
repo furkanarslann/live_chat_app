@@ -52,12 +52,37 @@ class ChatState extends Equatable {
     return failureOrMessagesOpt.getOrElse(() => right([])).getOrElse(() => []);
   }
 
+  List<ChatConversation> getNonArchivedConversations(User currentUser) {
+    final conversations = conversationsOrEmpty;
+
+    final nonArchived = conversations
+        .where((conv) => !currentUser.chatPreferences.isArchivedBy(conv.id))
+        .toList();
+
+    nonArchived.sort((a, b) {
+      final aPinned = currentUser.chatPreferences.isPinnedBy(a.id);
+      final bPinned = currentUser.chatPreferences.isPinnedBy(b.id);
+      if (aPinned != bPinned) return aPinned ? -1 : 1;
+
+      final aTime = a.lastMessage?.timestamp ?? a.createdAt ?? DateTime(0);
+      final bTime = b.lastMessage?.timestamp ?? b.createdAt ?? DateTime(0);
+      return bTime.compareTo(aTime);
+    });
+
+    return nonArchived;
+  }
+
   User? findParticipant(String participantId) {
     return participantsMap[participantId];
   }
 
   int getUnreadCount(String conversationId) {
     return unreadCountMap[conversationId] ?? 0;
+  }
+
+  ChatMessage? getLastMessage(String conversationId) {
+    final conv = conversationsOrEmpty.firstWhere((c) => c.id == conversationId);
+    return conv.lastMessage;
   }
 
   ChatState copyWith({

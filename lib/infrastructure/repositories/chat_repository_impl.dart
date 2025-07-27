@@ -256,10 +256,25 @@ class ChatRepositoryImpl implements ChatRepository {
         batch.update(doc.reference, {'isRead': true});
       }
 
-      // Update conversation unread count
-      batch.update(_conversationsRef.doc(conversationId), {
-        'unreadCount': FieldValue.increment(-messagesSnapshot.docs.length),
-      });
+      // Update the lastMessage in the conversation with the new read status
+      final lastMessageSnapshot = await _messagesRef
+          .where('conversationId', isEqualTo: conversationId)
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .get();
+
+      if (lastMessageSnapshot.docs.isNotEmpty) {
+        final lastMessageDoc = lastMessageSnapshot.docs.first;
+        final lastMessageData = lastMessageDoc.data() as Map<String, dynamic>;
+
+        // Update the lastMessage in the conversation with the current read status
+        batch.update(_conversationsRef.doc(conversationId), {
+          'lastMessage': {
+            ...lastMessageData,
+            'isRead': true,
+          },
+        });
+      }
 
       await batch.commit();
       return const Right(unit);

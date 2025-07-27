@@ -107,26 +107,6 @@ class _ChatListContent extends StatelessWidget {
 
   const _ChatListContent({required this.currentUser});
 
-  List<ChatConversation> _filterConversations(
-    List<ChatConversation> conversations,
-  ) {
-    final nonArchived = conversations
-        .where((conv) => !currentUser.chatPreferences.isArchivedBy(conv.id))
-        .toList();
-
-    nonArchived.sort((a, b) {
-      final aPinned = currentUser.chatPreferences.isPinnedBy(a.id);
-      final bPinned = currentUser.chatPreferences.isPinnedBy(b.id);
-      if (aPinned != bPinned) return aPinned ? -1 : 1;
-
-      final aTime = a.lastMessage?.timestamp ?? a.createdAt ?? DateTime(0);
-      final bTime = b.lastMessage?.timestamp ?? b.createdAt ?? DateTime(0);
-      return bTime.compareTo(aTime);
-    });
-
-    return nonArchived;
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatCubit, ChatState>(
@@ -145,7 +125,10 @@ class _ChatListContent extends StatelessWidget {
             (conversations) {
               if (conversations.isEmpty) return _ChatListEmptyContent();
 
-              final filteredConversations = _filterConversations(conversations);
+              final filteredConversations = state.getNonArchivedConversations(
+                currentUser,
+              );
+
               final archivedCount =
                   conversations.length - filteredConversations.length;
 
@@ -601,6 +584,8 @@ class _ConversationTileContent extends StatelessWidget {
         if (participant == null) return const ConversationTileShimmer();
 
         final unreadCount = chatState.getUnreadCount(conversation.id);
+        final lastMessage = chatState.getLastMessage(conversation.id);
+        final isLastMessageSentByMe = lastMessage?.senderId == currentUser.id;
 
         return ListTile(
           leading: UserAvatar(
@@ -627,23 +612,35 @@ class _ConversationTileContent extends StatelessWidget {
                 ),
             ],
           ),
-          subtitle: conversation.lastMessage != null
-              ? Text(
-                  conversation.lastMessage!.content,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: unreadCount > 0 ? FontWeight.bold : null,
+          subtitle: lastMessage != null
+              ? Row(
+                  children: [
+                    if (isLastMessageSentByMe) ...[
+                      MessageReadStatus(
+                        isRead: lastMessage.isRead,
+                        isMe: isLastMessageSentByMe,
                       ),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(
+                      lastMessage.content,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight:
+                                unreadCount > 0 ? FontWeight.bold : null,
+                          ),
+                    ),
+                  ],
                 )
               : null,
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (conversation.lastMessage != null)
+              if (lastMessage != null)
                 Text(
-                  _formatTime(conversation.lastMessage!.timestamp),
+                  _formatTime(lastMessage.timestamp),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               if (unreadCount > 0)
