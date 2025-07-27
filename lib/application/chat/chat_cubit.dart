@@ -153,6 +153,10 @@ class ChatCubit extends Cubit<ChatState> {
     await _repository.deleteConversation(conversationId);
   }
 
+  void changeFilter(ChatFilter filter) {
+    emit(state.copyWith(activeFilter: filter));
+  }
+
   Future<void> clearErrorState() async {
     emit(state.copyWith(failOrSendSuccessOpt: const None()));
   }

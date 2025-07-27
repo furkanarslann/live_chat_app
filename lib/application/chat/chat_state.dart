@@ -5,6 +5,13 @@ import '../../domain/core/failures.dart';
 import '../../domain/chat/chat_conversation.dart';
 import '../../domain/chat/chat_message.dart';
 
+enum ChatFilter {
+  all,
+  unread,
+  favorites,
+  groups,
+}
+
 class ChatState extends Equatable {
   // Conversations related state
   final bool isLoading;
@@ -13,6 +20,9 @@ class ChatState extends Equatable {
   final Option<String> selectedConversationIdOpt;
   final Map<String, User> participantsMap;
   final Map<String, int> unreadCountMap;
+
+  // Filter state
+  final ChatFilter activeFilter;
 
   // Messages related state
   final Option<Either<Failure, List<ChatMessage>>> failureOrMessagesOpt;
@@ -28,6 +38,7 @@ class ChatState extends Equatable {
     this.selectedConversationIdOpt = const None(),
     this.isSending = false,
     this.failOrSendSuccessOpt = const None(),
+    this.activeFilter = ChatFilter.all,
   });
 
   @override
@@ -40,6 +51,7 @@ class ChatState extends Equatable {
         failOrSendSuccessOpt,
         participantsMap,
         unreadCountMap,
+        activeFilter,
       ];
 
   List<ChatConversation> get conversationsOrEmpty {
@@ -63,7 +75,10 @@ class ChatState extends Equatable {
         .where((conv) => !currentUser.chatPreferences.isArchived(conv.id))
         .toList();
 
-    nonArchived.sort((a, b) {
+    // Apply active filter
+    final filteredConversations = _applyFilter(nonArchived, currentUser);
+
+    filteredConversations.sort((a, b) {
       final aPinned = currentUser.chatPreferences.isPinned(a.id);
       final bPinned = currentUser.chatPreferences.isPinned(b.id);
       if (aPinned != bPinned) return aPinned ? -1 : 1;
@@ -73,7 +88,28 @@ class ChatState extends Equatable {
       return bTime.compareTo(aTime);
     });
 
-    return nonArchived;
+    return filteredConversations;
+  }
+
+  List<ChatConversation> _applyFilter(
+    List<ChatConversation> conversations,
+    User currentUser,
+  ) {
+    switch (activeFilter) {
+      case ChatFilter.all:
+        return conversations;
+      case ChatFilter.unread:
+        return conversations.where((conv) {
+          final unreadCount = getUnreadCount(conv.id);
+          return unreadCount > 0;
+        }).toList();
+      case ChatFilter.favorites:
+        // For now, return empty list as favorite functionality is not implemented
+        return [];
+      case ChatFilter.groups:
+        // For now, return empty list as group functionality is not implemented
+        return [];
+    }
   }
 
   User? findParticipant(String participantId) {
@@ -98,6 +134,7 @@ class ChatState extends Equatable {
     Option<Either<Failure, Unit>>? failOrSendSuccessOpt,
     Map<String, User>? participantsMap,
     Map<String, int>? unreadCountMap,
+    ChatFilter? activeFilter,
   }) {
     return ChatState(
       isLoading: isLoading ?? this.isLoading,
@@ -110,6 +147,7 @@ class ChatState extends Equatable {
       failOrSendSuccessOpt: failOrSendSuccessOpt ?? this.failOrSendSuccessOpt,
       participantsMap: participantsMap ?? this.participantsMap,
       unreadCountMap: unreadCountMap ?? this.unreadCountMap,
+      activeFilter: activeFilter ?? this.activeFilter,
     );
   }
 }
