@@ -154,7 +154,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
       // Check if conversation exists, if not create it
       final conversationDoc = await _conversationsRef.doc(conversationId).get();
-      
+
       if (!conversationDoc.exists) {
         // Create the conversation with the first message
         final conversation = ChatConversation(
@@ -163,7 +163,7 @@ class ChatRepositoryImpl implements ChatRepository {
           lastMessage: message.copyWith(id: messageRef.id),
           createdAt: DateTime.now(),
         );
-        
+
         await _conversationsRef.doc(conversationId).set(conversation.toMap());
       } else {
         // Update existing conversation's last message
@@ -172,9 +172,6 @@ class ChatRepositoryImpl implements ChatRepository {
             ...message.toMap(),
             'id': messageRef.id,
           },
-          'unreadCount': FieldValue.increment(
-            message.senderId == currentUserId ? 0 : 1,
-          ),
         });
       }
 
@@ -360,7 +357,6 @@ class ChatRepositoryImpl implements ChatRepository {
       // Update conversation to remove last message
       batch.update(_conversationsRef.doc(conversationId), {
         'lastMessage': null,
-        'unreadCount': 0,
       });
 
       await batch.commit();

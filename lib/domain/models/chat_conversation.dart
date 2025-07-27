@@ -21,8 +21,6 @@ class ChatConversation extends Equatable {
       user.chatPreferences.pinnedConversations.contains(id);
   bool isArchivedBy(User user) =>
       user.chatPreferences.archivedConversations.contains(id);
-  int getUnreadCountFor(User user) =>
-      user.chatPreferences.unreadCounts[id] ?? 0;
 
   String getParticipantId(User currentUser) {
     return participants.firstWhere(
