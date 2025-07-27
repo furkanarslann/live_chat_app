@@ -134,7 +134,7 @@ class ChatCubit extends Cubit<ChatState> {
     ));
 
     // Mark messages as read when user opens conversation
-    await markMessagesAsReadOnView(conversationId);
+    await markConversationMessagesAsRead(conversationId);
 
     // Then start watching for updates
     _watchMessages(conversationId);
@@ -180,9 +180,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   /// Automatically mark messages as read when user is viewing the conversation
-  Future<void> markMessagesAsReadOnView(
-    String conversationId,
-  ) async {
+  Future<void> markConversationMessagesAsRead(String conversationId) async {
     await _chatRepository.markConversationMessagesAsRead(conversationId);
   }
 

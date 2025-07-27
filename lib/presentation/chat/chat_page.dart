@@ -200,7 +200,7 @@ class _FilledChatContentState extends State<_FilledChatContent> {
       // Mark messages as read when conversation is clicked
       context
           .read<ChatCubit>()
-          .markMessagesAsReadOnView(widget.conversation.id);
+          .markConversationMessagesAsRead(widget.conversation.id);
 
       if (mounted && _scrollController.hasClients) {
         _scrollToBottom(animated: false);

@@ -181,32 +181,6 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, Unit>> markMessageAsRead(String messageId) async {
-    try {
-      final currentUserId = _currentUserId;
-
-      // Get the message to check if current user is the receiver
-      final messageDoc = await _messagesRef.doc(messageId).get();
-      if (!messageDoc.exists) {
-        return const Left(UnexpectedFailure());
-      }
-
-      final messageData = messageDoc.data() as Map<String, dynamic>;
-      final receiverId = messageData['receiverId'] as String;
-
-      // Only the receiver can mark messages as read
-      if (receiverId != currentUserId) {
-        return const Left(UnexpectedFailure());
-      }
-
-      await _messagesRef.doc(messageId).update({'isRead': true});
-      return const Right(unit);
-    } catch (e) {
-      return const Left(UnexpectedFailure());
-    }
-  }
-
   /// Mark multiple messages as read (only for receiver)
   @override
   Future<Either<Failure, Unit>> markMessagesAsRead(
@@ -222,15 +196,42 @@ class ChatRepositoryImpl implements ChatRepository {
 
       final batch = _firestore.batch();
       final validMessageIds = <String>[];
+      final conversationIds = <String>{};
 
       for (final doc in messagesSnapshot.docs) {
         final messageData = doc.data() as Map<String, dynamic>;
         final receiverId = messageData['receiverId'] as String;
+        final conversationId = messageData['conversationId'] as String?;
 
         // Only include messages where current user is the receiver
         if (receiverId == currentUserId) {
           batch.update(doc.reference, {'isRead': true});
           validMessageIds.add(doc.id);
+          if (conversationId != null) {
+            conversationIds.add(conversationId);
+          }
+        }
+      }
+
+      // Update the lastMessage in each affected conversation with the current read status
+      for (final conversationId in conversationIds) {
+        final lastMessageSnapshot = await _messagesRef
+            .where('conversationId', isEqualTo: conversationId)
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get();
+
+        if (lastMessageSnapshot.docs.isNotEmpty) {
+          final lastMessageDoc = lastMessageSnapshot.docs.first;
+          final lastMessageData = lastMessageDoc.data() as Map<String, dynamic>;
+
+          // Update the lastMessage in the conversation with the current read status
+          batch.update(_conversationsRef.doc(conversationId), {
+            'lastMessage': {
+              ...lastMessageData,
+              'isRead': true,
+            },
+          });
         }
       }
 
