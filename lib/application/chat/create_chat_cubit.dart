@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
 import '../../domain/core/failures.dart';
-import '../../domain/models/user.dart';
-import '../../domain/models/chat_conversation.dart';
+import '../../domain/auth/user.dart';
+import '../../domain/chat/chat_conversation.dart';
 import 'create_chat_state.dart';
 
 class CreateChatCubit extends Cubit<CreateChatState> {

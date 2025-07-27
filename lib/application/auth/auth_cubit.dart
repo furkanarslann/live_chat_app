@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
-import 'package:live_chat_app/domain/models/user.dart';
-import 'package:live_chat_app/domain/repositories/auth_repository.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
+import 'package:live_chat_app/domain/auth/auth_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthCubit extends Cubit<AuthState> {

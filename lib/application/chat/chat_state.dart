@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:dartz/dartz.dart';
-import 'package:live_chat_app/domain/models/user.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
 import '../../domain/core/failures.dart';
-import '../../domain/models/chat_conversation.dart';
-import '../../domain/models/chat_message.dart';
+import '../../domain/chat/chat_conversation.dart';
+import '../../domain/chat/chat_message.dart';
 
 class ChatState extends Equatable {
   // Conversations related state

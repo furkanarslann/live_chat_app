@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:live_chat_app/domain/models/chat_message.dart';
+import 'package:live_chat_app/domain/chat/chat_message.dart';
 
 class ChatSearchState extends Equatable {
   final String searchQuery;

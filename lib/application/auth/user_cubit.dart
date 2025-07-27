@@ -3,8 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
 import '../../domain/core/failures.dart';
-import '../../domain/models/user.dart';
-import '../../domain/repositories/user_repository.dart';
+import '../../domain/auth/user.dart';
+import '../../domain/auth/user_repository.dart';
 
 part 'user_state.dart';
 

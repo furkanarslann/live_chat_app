@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:live_chat_app/domain/models/user.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
 import '../core/failures.dart';
-import '../models/chat_conversation.dart';
-import '../models/chat_message.dart';
+import 'chat_conversation.dart';
+import 'chat_message.dart';
 
 abstract class ChatRepository {
   Future<Either<Failure, List<ChatConversation>>> getConversations();

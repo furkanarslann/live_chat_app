@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
-import 'package:live_chat_app/domain/models/user.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
 
 enum AuthStatus {
   initial,

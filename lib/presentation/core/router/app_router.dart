@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:live_chat_app/presentation/pages/auth/login_page.dart';
-import 'package:live_chat_app/presentation/pages/auth/register_page.dart';
-import 'package:live_chat_app/presentation/pages/home/home_page.dart';
+import 'package:live_chat_app/presentation/auth/login_page.dart';
+import 'package:live_chat_app/presentation/auth/register_page.dart';
+import 'package:live_chat_app/presentation/home/home_page.dart';
 
 class AppRouter {
   static const String login = '/login';

@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../core/failures.dart';
-import '../models/user.dart';
-import '../models/user_chat_preferences.dart';
+import 'user.dart';
+import 'user_chat_preferences.dart';
 
 abstract class UserRepository {
   Stream<Either<Failure, User>> watchCurrentUser();

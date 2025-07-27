@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
-import '../../../application/chat/chat_cubit.dart';
-import '../../../application/chat/chat_state.dart';
-import '../../../domain/models/chat_conversation.dart';
-import '../../../domain/models/chat_message.dart';
-import '../../core/extensions/build_context_translate_ext.dart';
-import '../../core/widgets/user_avatar.dart';
-import '../../core/widgets/glassy_snackbar.dart';
+import '../../application/chat/chat_cubit.dart';
+import '../../application/chat/chat_state.dart';
+import '../../domain/chat/chat_conversation.dart';
+import '../../domain/chat/chat_message.dart';
+import '../core/extensions/build_context_translate_ext.dart';
+import '../core/widgets/user_avatar.dart';
+import '../core/widgets/glassy_snackbar.dart';
 import 'participant_profile_page.dart';
 
 class ChatPage extends StatefulWidget {

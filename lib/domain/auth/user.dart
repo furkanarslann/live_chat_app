@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:live_chat_app/domain/models/user_chat_preferences.dart';
+import 'package:live_chat_app/domain/auth/user_chat_preferences.dart';
 
 class User extends Equatable {
   final String id;

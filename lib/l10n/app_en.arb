@@ -310,5 +310,27 @@
   "noSearchResults": "No results found",
   "@noSearchResults": {
     "description": "Message shown when search returns no results"
+  },
+  "searchDescription": "Search through your conversations and messages",
+  "@searchDescription": {
+    "description": "Description text for search functionality"
+  },
+  "noResultsForQuery": "No results found for \"{query}\"",
+  "@noResultsForQuery": {
+    "description": "Message shown when search returns no results for specific query",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "hello"
+      }
+    }
+  },
+  "conversationType": "Conversation",
+  "@conversationType": {
+    "description": "Label for conversation type in search results"
+  },
+  "messageType": "Message",
+  "@messageType": {
+    "description": "Label for message type in search results"
   }
 }

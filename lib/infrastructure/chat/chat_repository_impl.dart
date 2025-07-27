@@ -3,10 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:dartz/dartz.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
-import 'package:live_chat_app/domain/models/chat_conversation.dart';
-import 'package:live_chat_app/domain/models/chat_message.dart';
-import 'package:live_chat_app/domain/models/user.dart';
-import 'package:live_chat_app/domain/repositories/chat_repository.dart';
+import 'package:live_chat_app/domain/chat/chat_conversation.dart';
+import 'package:live_chat_app/domain/chat/chat_message.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
+import 'package:live_chat_app/domain/chat/chat_repository.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final FirebaseFirestore _firestore;

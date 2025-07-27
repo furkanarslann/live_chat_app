@@ -5,10 +5,8 @@ import 'package:live_chat_app/application/chat/chat_search_state.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_state.dart';
 import 'package:live_chat_app/application/auth/user_cubit.dart';
-import 'package:live_chat_app/domain/models/chat_conversation.dart';
-import 'package:live_chat_app/domain/models/chat_message.dart';
-import 'package:live_chat_app/domain/models/user.dart';
-import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
+import 'package:live_chat_app/domain/chat/chat_search_result.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
@@ -94,11 +92,12 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
                           );
                         }
 
-                        final results = _performSearch(
-                          searchState.searchQuery,
-                          chatState,
-                          currentUser,
-                        );
+                        final results =
+                            context.read<ChatSearchCubit>().performSearch(
+                                  searchState.searchQuery,
+                                  chatState,
+                                  currentUser,
+                                );
 
                         if (results.isEmpty) {
                           return _NoSearchResultsState(
@@ -120,92 +119,6 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
         );
       },
     );
-  }
-
-  List<SearchResult> _performSearch(
-    String query,
-    ChatState chatState,
-    User currentUser,
-  ) {
-    final results = <SearchResult>[];
-    final lowerQuery = query.toLowerCase();
-
-    // Search in conversations
-    final conversations = chatState.failureOrConversationsOpt.fold(
-      () => <ChatConversation>[],
-      (failureOrConversations) => failureOrConversations.fold(
-        (failure) => <ChatConversation>[],
-        (conversations) => conversations,
-      ),
-    );
-
-    for (final conversation in conversations) {
-      final participantId = conversation.getParticipantId(currentUser);
-      final participant = chatState.findParticipant(participantId);
-      
-      if (participant != null) {
-        final fullName = participant.fullName.toLowerCase();
-        final firstName = participant.firstName.toLowerCase();
-        final lastName = participant.lastName.toLowerCase();
-        
-        if (fullName.contains(lowerQuery) ||
-            firstName.contains(lowerQuery) ||
-            lastName.contains(lowerQuery)) {
-          results.add(SearchResult.conversation(conversation, participant));
-        }
-        
-        // Search in last message of conversation
-        if (conversation.lastMessage != null) {
-          final content = conversation.lastMessage!.content.toLowerCase();
-          if (content.contains(lowerQuery)) {
-            results.add(SearchResult.message(conversation.lastMessage!, conversation, participant));
-          }
-        }
-      }
-    }
-
-    // Search in current conversation messages (if any conversation is selected)
-    final selectedConversationId = chatState.selectedConversationIdOpt.toNullable();
-    if (selectedConversationId != null) {
-      final messages = chatState.messagesOrEmpty;
-              final conversation = conversations.firstWhere(
-          (conv) => conv.id == selectedConversationId,
-          orElse: () => const ChatConversation(
-            id: '',
-            participants: [],
-          ),
-        );
-      
-      if (conversation.id.isNotEmpty) {
-        final participantId = conversation.getParticipantId(currentUser);
-        final participant = chatState.findParticipant(participantId);
-        
-        if (participant != null) {
-          for (final message in messages) {
-            final content = message.content.toLowerCase();
-            if (content.contains(lowerQuery)) {
-              results.add(SearchResult.message(message, conversation, participant));
-            }
-          }
-        }
-      }
-    }
-
-    // Remove duplicates and sort by relevance
-    final uniqueResults = <String, SearchResult>{};
-    for (final result in results) {
-      final key = result.conversation.id;
-      if (!uniqueResults.containsKey(key) || result.type == SearchResultType.message) {
-        uniqueResults[key] = result;
-      }
-    }
-
-    return uniqueResults.values.toList()
-      ..sort((a, b) {
-        final aTime = a.conversation.lastMessage?.timestamp ?? DateTime(1900);
-        final bTime = b.conversation.lastMessage?.timestamp ?? DateTime(1900);
-        return bTime.compareTo(aTime); // Most recent first
-      });
   }
 }
 
@@ -291,7 +204,7 @@ class _SearchEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: Spacing.sm),
             Text(
-              'Search through your conversations and messages',
+              context.tr.searchDescription,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -339,7 +252,7 @@ class _NoSearchResultsState extends StatelessWidget {
             ),
             const SizedBox(height: Spacing.sm),
             Text(
-              'No results found for "$query"',
+              context.tr.noResultsForQuery(query),
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -353,7 +266,7 @@ class _NoSearchResultsState extends StatelessWidget {
 }
 
 class _SearchResultsList extends StatelessWidget {
-  final List<SearchResult> results;
+  final List<ChatSearchResult> results;
   final User currentUser;
 
   const _SearchResultsList({
@@ -378,7 +291,7 @@ class _SearchResultsList extends StatelessWidget {
 }
 
 class _SearchResultTile extends StatelessWidget {
-  final SearchResult result;
+  final ChatSearchResult result;
   final User currentUser;
 
   const _SearchResultTile({
@@ -403,7 +316,8 @@ class _SearchResultTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (result.type == SearchResultType.message && result.message != null)
+            if (result.type == ChatSearchResultType.message &&
+                result.message != null)
               Text(
                 result.message!.content,
                 maxLines: 2,
@@ -414,17 +328,20 @@ class _SearchResultTile extends StatelessWidget {
               ),
             const SizedBox(height: 4),
             Text(
-              result.type == SearchResultType.conversation
-                  ? 'Conversation'
-                  : 'Message',
+              result.type == ChatSearchResultType.conversation
+                  ? context.tr.conversationType
+                  : context.tr.messageType,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
                   ),
             ),
           ],
         ),
         trailing: Icon(
-          result.type == SearchResultType.conversation
+          result.type == ChatSearchResultType.conversation
               ? Icons.chat_bubble_outline
               : Icons.message_outlined,
           color: Theme.of(context).colorScheme.primary,
@@ -441,19 +358,3 @@ class _SearchResultTile extends StatelessWidget {
     );
   }
 }
-
-enum SearchResultType { conversation, message }
-
-class SearchResult {
-  final SearchResultType type;
-  final ChatConversation conversation;
-  final User participant;
-  final ChatMessage? message;
-
-  SearchResult.conversation(this.conversation, this.participant)
-      : type = SearchResultType.conversation,
-        message = null;
-
-  SearchResult.message(this.message, this.conversation, this.participant)
-      : type = SearchResultType.message;
-} 

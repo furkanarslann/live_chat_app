@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
-import 'package:live_chat_app/domain/models/user.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_dialog_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';

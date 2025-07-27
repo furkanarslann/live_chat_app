@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart';
 import '../../domain/core/failures.dart';
-import '../../domain/models/user.dart';
-import '../../domain/models/user_chat_preferences.dart';
-import '../../domain/repositories/user_repository.dart';
+import '../../domain/auth/user.dart';
+import '../../domain/auth/user_chat_preferences.dart';
+import '../../domain/auth/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final firebase_auth.FirebaseAuth _auth;

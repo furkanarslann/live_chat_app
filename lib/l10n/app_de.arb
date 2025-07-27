@@ -119,5 +119,17 @@
   "searchChats": "Chats durchsuchen...",
   "searchMessages": "Nachrichten durchsuchen...",
   "searchResults": "Suchergebnisse",
-  "noSearchResults": "Keine Ergebnisse gefunden"
+  "noSearchResults": "Keine Ergebnisse gefunden",
+  "searchDescription": "Durchsuchen Sie Ihre Gespräche und Nachrichten",
+  "noResultsForQuery": "Keine Ergebnisse gefunden für \"{query}\"",
+  "@noResultsForQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "hallo"
+      }
+    }
+  },
+  "conversationType": "Gespräch",
+  "messageType": "Nachricht"
 }

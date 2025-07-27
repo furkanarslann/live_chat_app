@@ -3,21 +3,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
-import '../../../application/auth/user_cubit.dart';
-import '../../../application/chat/chat_cubit.dart';
-import '../../../application/chat/chat_state.dart';
-import '../../../application/chat/chat_search_cubit.dart';
-import '../../../domain/models/user.dart';
-import '../../../application/chat/create_chat_cubit.dart';
-import '../../../domain/models/chat_conversation.dart';
-import '../../core/app_theme.dart';
-import '../../core/extensions/build_context_translate_ext.dart';
-import '../../core/widgets/user_avatar.dart';
-import '../../core/widgets/conversation_tile_shimmer.dart';
+import '../../application/auth/user_cubit.dart';
+import '../../application/chat/chat_cubit.dart';
+import '../../application/chat/chat_state.dart';
+import '../../application/chat/chat_search_cubit.dart';
+import '../../domain/auth/user.dart';
+import '../../application/chat/create_chat_cubit.dart';
+import '../../domain/chat/chat_conversation.dart';
+import '../core/app_theme.dart';
+import '../core/extensions/build_context_translate_ext.dart';
+import '../core/widgets/user_avatar.dart';
+import '../core/widgets/conversation_tile_shimmer.dart';
 import 'chat_page.dart';
 import 'create_new_chat_bottom_sheet.dart';
 import 'chat_search_page.dart';
-import '../../../setup_dependencies.dart';
+import '../../setup_dependencies.dart';
 
 class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
@@ -93,7 +93,7 @@ class _ChatListPageState extends State<ChatListPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SearchBar(),
+                const _SearchBar(),
                 const _FilterChips(),
                 Expanded(child: _ChatListContent(currentUser: user)),
               ],

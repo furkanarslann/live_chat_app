@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'chat_message.dart';
-import 'user.dart';
+import '../auth/user.dart';
 
 class ChatConversation extends Equatable {
   final String id;

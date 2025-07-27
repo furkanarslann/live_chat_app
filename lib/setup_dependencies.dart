@@ -7,14 +7,14 @@ import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_search_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
-import 'package:live_chat_app/domain/repositories/auth_repository.dart';
-import 'package:live_chat_app/domain/repositories/user_repository.dart';
-import 'package:live_chat_app/infrastructure/repositories/auth_repository_impl.dart';
-import 'package:live_chat_app/infrastructure/repositories/user_repository_impl.dart';
+import 'package:live_chat_app/domain/auth/auth_repository.dart';
+import 'package:live_chat_app/domain/auth/user_repository.dart';
+import 'package:live_chat_app/infrastructure/auth/auth_repository_impl.dart';
+import 'package:live_chat_app/infrastructure/auth/user_repository_impl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'application/chat/chat_cubit.dart';
-import 'domain/repositories/chat_repository.dart';
-import 'infrastructure/repositories/chat_repository_impl.dart';
+import 'domain/chat/chat_repository.dart';
+import 'infrastructure/chat/chat_repository_impl.dart';
 
 final getIt = GetIt.instance;
 

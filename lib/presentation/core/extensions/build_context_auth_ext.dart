@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
-import 'package:live_chat_app/domain/models/user.dart';
+import 'package:live_chat_app/domain/auth/user.dart';
 
 extension BuildContextAuthX on BuildContext {
   /// Checks if the user is authenticated.

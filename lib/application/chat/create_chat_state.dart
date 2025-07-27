@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/core/failures.dart';
-import '../../domain/models/user.dart';
+import '../../domain/auth/user.dart';
 
 class CreateChatState extends Equatable {
   final bool isLoading;

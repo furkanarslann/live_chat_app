@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
-import 'package:live_chat_app/presentation/pages/chat/chat_list_page.dart';
-import 'package:live_chat_app/presentation/pages/settings/settings_page.dart';
+import 'package:live_chat_app/presentation/chat/chat_list_page.dart';
+import 'package:live_chat_app/presentation/settings/settings_page.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/restartable_app.dart';
 

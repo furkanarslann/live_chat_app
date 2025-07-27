@@ -9,8 +9,8 @@ import 'package:live_chat_app/presentation/core/extensions/build_context_dialog_
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
-import 'package:live_chat_app/presentation/pages/settings/language_settings_page.dart';
-import 'package:live_chat_app/presentation/pages/settings/theme_settings_page.dart';
+import 'package:live_chat_app/presentation/settings/language_settings_page.dart';
+import 'package:live_chat_app/presentation/settings/theme_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
