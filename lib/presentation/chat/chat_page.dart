@@ -137,6 +137,13 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: BlocBuilder<ChatCubit, ChatState>(
                     builder: (context, state) {
+                      // Show loading when switching conversations
+                      if (state.selectedConversationIdOpt.isSome() &&
+                          state.selectedConversationIdOpt.toNullable() !=
+                              widget.conversation.id) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
                       return state.failureOrMessagesOpt.fold(
                         () => const Center(child: CircularProgressIndicator()),
                         (failureOrMessages) => failureOrMessages.fold(
@@ -190,11 +197,14 @@ class _FilledChatContentState extends State<_FilledChatContent> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom(context, animated: false);
       // Mark messages as read when conversation is clicked
       context
           .read<ChatCubit>()
           .markMessagesAsReadOnView(widget.conversation.id);
+
+      if (mounted && _scrollController.hasClients) {
+        _scrollToBottom(animated: false);
+      }
     });
   }
 
@@ -204,18 +214,23 @@ class _FilledChatContentState extends State<_FilledChatContent> {
     super.dispose();
   }
 
-  void _scrollToBottom(context, {bool animated = true}) {
+  void _scrollToBottom({bool animated = true}) {
     if (!_scrollController.hasClients) return;
 
     final maxScrollExtent = _scrollController.position.maxScrollExtent;
 
-    if (!animated) return _scrollController.jumpTo(maxScrollExtent);
+    // Don't scroll if already at bottom or no content
+    if (maxScrollExtent <= 0) return;
 
-    _scrollController.animateTo(
-      maxScrollExtent + 50,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    if (!animated) {
+      _scrollController.jumpTo(maxScrollExtent);
+    } else {
+      _scrollController.animateTo(
+        maxScrollExtent + 100,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   /// Mark new unread messages as read when they arrive
@@ -251,11 +266,12 @@ class _FilledChatContentState extends State<_FilledChatContent> {
 
         // Mark new messages as read when they arrive
         _markNewMessagesAsRead(context, state);
-
-        _scrollToBottom(context);
+        // Scroll to bottom to see new messages
+        _scrollToBottom();
       },
       builder: (context, state) {
         final messages = state.messagesOrEmpty;
+
         return ListView.builder(
           controller: _scrollController,
           padding: const EdgeInsets.all(16),

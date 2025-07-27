@@ -98,7 +98,16 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void selectConversation(String conversationId) {
-    emit(state.copyWith(selectedConversationIdOpt: Some(conversationId)));
+    // Cancel any existing message subscription
+    _messagesSubscription?.cancel();
+
+    // Clear previous messages and set new conversation
+    emit(state.copyWith(
+      selectedConversationIdOpt: Some(conversationId),
+      failureOrMessagesOpt: const None(),
+      isSending: false,
+      failOrSendSuccessOpt: const None(),
+    ));
   }
 
   Future<void> loadSingleParticipant(String participantId) async {
@@ -112,8 +121,10 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> watchSelectedConversationMessages() async {
-    if (state.selectedConversationIdOpt.isNone()) return;
+    // Cancel any existing subscription first
+    _messagesSubscription?.cancel();
 
+    if (state.selectedConversationIdOpt.isNone()) return;
     final conversationId = state.selectedConversationIdOpt.toNullable()!;
 
     // First fetch messages
