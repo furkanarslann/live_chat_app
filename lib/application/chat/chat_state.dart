@@ -56,9 +56,8 @@ class ChatState extends Equatable {
     final conversations = conversationsOrEmpty;
 
     // Only show conversations that have messages
-    final conversationsWithMessages = conversations
-        .where((conv) => conv.lastMessage != null)
-        .toList();
+    final conversationsWithMessages =
+        conversations.where((conv) => conv.lastMessage != null).toList();
 
     final nonArchived = conversationsWithMessages
         .where((conv) => !currentUser.chatPreferences.isArchivedBy(conv.id))

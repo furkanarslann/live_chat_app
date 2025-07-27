@@ -6,6 +6,7 @@ import 'package:live_chat_app/presentation/core/extensions/build_context_theme_e
 import '../../../application/auth/user_cubit.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
+import '../../../application/chat/chat_search_cubit.dart';
 import '../../../domain/models/user.dart';
 import '../../../application/chat/create_chat_cubit.dart';
 import '../../../domain/models/chat_conversation.dart';
@@ -15,6 +16,7 @@ import '../../core/widgets/user_avatar.dart';
 import '../../core/widgets/conversation_tile_shimmer.dart';
 import 'chat_page.dart';
 import 'create_new_chat_bottom_sheet.dart';
+import 'chat_search_page.dart';
 import '../../../setup_dependencies.dart';
 
 class ChatListPage extends StatefulWidget {
@@ -91,6 +93,7 @@ class _ChatListPageState extends State<ChatListPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _SearchBar(),
                 const _FilterChips(),
                 Expanded(child: _ChatListContent(currentUser: user)),
               ],
@@ -166,6 +169,81 @@ class _ChatListContent extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BlocProvider(
+                  create: (_) => getIt<ChatSearchCubit>(),
+                  child: const ChatSearchPage(),
+                ),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.search,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  context.tr.searchChats,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

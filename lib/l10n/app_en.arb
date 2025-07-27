@@ -294,5 +294,21 @@
   "read": "Read",
   "@read": {
     "description": "Message status - read by recipient"
+  },
+  "searchChats": "Search chats...",
+  "@searchChats": {
+    "description": "Hint text for chat search field"
+  },
+  "searchMessages": "Search messages...",
+  "@searchMessages": {
+    "description": "Hint text for message search field"
+  },
+  "searchResults": "Search Results",
+  "@searchResults": {
+    "description": "Title for search results page"
+  },
+  "noSearchResults": "No results found",
+  "@noSearchResults": {
+    "description": "Message shown when search returns no results"
   }
 }

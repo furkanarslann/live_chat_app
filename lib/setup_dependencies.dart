@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/user_cubit.dart';
 import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
+import 'package:live_chat_app/application/chat/chat_search_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/domain/repositories/auth_repository.dart';
@@ -79,5 +80,9 @@ Future<void> setupDependencies() async {
 
   getIt.registerFactory<LanguageCubit>(
     () => LanguageCubit(prefs: getIt<SharedPreferences>()),
+  );
+
+  getIt.registerFactory<ChatSearchCubit>(
+    () => ChatSearchCubit(),
   );
 }

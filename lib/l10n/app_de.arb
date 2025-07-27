@@ -115,5 +115,9 @@
   "clear": "Löschen",
   "sending": "Wird gesendet...",
   "sent": "Gesendet",
-  "read": "Gelesen"
+  "read": "Gelesen",
+  "searchChats": "Chats durchsuchen...",
+  "searchMessages": "Nachrichten durchsuchen...",
+  "searchResults": "Suchergebnisse",
+  "noSearchResults": "Keine Ergebnisse gefunden"
 }
