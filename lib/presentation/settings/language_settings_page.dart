@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
-import 'package:live_chat_app/presentation/core/widgets/country_flag.dart';
+import 'package:live_chat_app/presentation/settings/widgets/country_flag.dart';
 
 class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});

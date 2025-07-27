@@ -9,7 +9,7 @@ import '../../domain/chat/chat_message.dart';
 import '../core/extensions/build_context_translate_ext.dart';
 import '../core/widgets/user_avatar.dart';
 import '../core/widgets/glassy_snackbar.dart';
-import 'participant_profile_page.dart';
+import 'chat_participant_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
   final ChatConversation conversation;
@@ -71,7 +71,7 @@ class _ChatPageState extends State<ChatPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ParticipantProfilePage(
+                        builder: (_) => ChatParticipantProfilePage(
                           participant: participant,
                         ),
                       ),

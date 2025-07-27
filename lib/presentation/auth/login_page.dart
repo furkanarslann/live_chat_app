@@ -8,7 +8,7 @@ import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_button.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_text_field.dart';
 import 'package:live_chat_app/presentation/core/widgets/glassy_snackbar.dart';
-import 'package:live_chat_app/presentation/core/widgets/language_selector.dart';
+import 'package:live_chat_app/presentation/settings/widgets/language_selector.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

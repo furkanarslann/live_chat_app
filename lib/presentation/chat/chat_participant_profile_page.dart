@@ -7,10 +7,10 @@ import 'package:live_chat_app/presentation/core/extensions/build_context_dialog_
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 
-class ParticipantProfilePage extends StatelessWidget {
+class ChatParticipantProfilePage extends StatelessWidget {
   final User participant;
 
-  const ParticipantProfilePage({
+  const ChatParticipantProfilePage({
     super.key,
     required this.participant,
   });
@@ -46,7 +46,7 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final participant = context
-        .findAncestorWidgetOfExactType<ParticipantProfilePage>()!
+        .findAncestorWidgetOfExactType<ChatParticipantProfilePage>()!
         .participant;
 
     return Center(
@@ -150,7 +150,7 @@ class _ActionButtons extends StatelessWidget {
 
   Future<void> _showClearChatDialog(BuildContext context) async {
     final participant = context
-        .findAncestorWidgetOfExactType<ParticipantProfilePage>()!
+        .findAncestorWidgetOfExactType<ChatParticipantProfilePage>()!
         .participant;
 
     final shouldClear =

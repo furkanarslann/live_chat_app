@@ -13,7 +13,7 @@ import '../../domain/chat/chat_conversation.dart';
 import '../core/app_theme.dart';
 import '../core/extensions/build_context_translate_ext.dart';
 import '../core/widgets/user_avatar.dart';
-import '../core/widgets/conversation_tile_shimmer.dart';
+import 'widgets/conversation_tile_shimmer.dart';
 import 'chat_page.dart';
 import 'create_new_chat_bottom_sheet.dart';
 import 'chat_search_page.dart';
