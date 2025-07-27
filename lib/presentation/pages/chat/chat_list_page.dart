@@ -567,7 +567,7 @@ class _ConversationTile extends StatelessWidget {
       child: _ConversationTileContent(
         conversation: conversation,
         currentUser: currentUser,
-        onTap: () async {          
+        onTap: () async {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -593,14 +593,14 @@ class _ConversationTileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPinned = currentUser.chatPreferences.isPinnedBy(conversation.id);
-    final unreadCount =
-        currentUser.chatPreferences.getUnreadCount(conversation.id);
 
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, chatState) {
         final participantId = conversation.getParticipantId(currentUser);
         final participant = chatState.findParticipant(participantId);
         if (participant == null) return const ConversationTileShimmer();
+
+        final unreadCount = chatState.getUnreadCount(conversation.id);
 
         return ListTile(
           leading: UserAvatar(

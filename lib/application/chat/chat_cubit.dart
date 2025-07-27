@@ -25,6 +25,9 @@ class ChatCubit extends Cubit<ChatState> {
         emit(state.copyWith(
           failureOrConversationsOpt: Some(failureOrConversations),
         ));
+
+        // Refresh unread counts when conversations are updated
+        await loadUnreadMessageCounts();
       },
     );
   }
@@ -66,6 +69,11 @@ class ChatCubit extends Cubit<ChatState> {
     } else {
       emit(state.copyWith(participantsMap: <String, User>{}));
     }
+  }
+
+  Future<void> loadUnreadMessageCounts() async {
+    final unreadCountMap = await _repository.getUnreadMessagesCount();
+    emit(state.copyWith(unreadCountMap: unreadCountMap));
   }
 
   Future<void> loadSingleParticipant(String participantId) async {

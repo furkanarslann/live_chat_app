@@ -362,4 +362,35 @@ class ChatRepositoryImpl implements ChatRepository {
       return const Left(UnexpectedFailure());
     }
   }
+
+  @override
+  Future<Map<String, int>> getUnreadMessagesCount() async {
+    try {
+      final currentUserId = _currentUserId;
+
+      // Get all unread messages where current user is the receiver
+      final messagesSnapshot = await _messagesRef
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      final unreadCountMap = <String, int>{};
+
+      // Group messages by conversationId and count them
+      for (final doc in messagesSnapshot.docs) {
+        final messageData = doc.data() as Map<String, dynamic>;
+        final conversationId = messageData['conversationId'] as String?;
+
+        if (conversationId != null) {
+          unreadCountMap[conversationId] =
+              (unreadCountMap[conversationId] ?? 0) + 1;
+        }
+      }
+
+      return unreadCountMap;
+    } catch (e) {
+      // Return empty map on error
+      return <String, int>{};
+    }
+  }
 }

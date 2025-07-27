@@ -12,6 +12,7 @@ class ChatState extends Equatable {
       failureOrConversationsOpt;
   final Option<String> selectedConversationIdOpt;
   final Map<String, User> participantsMap;
+  final Map<String, int> unreadCountMap;
 
   // Messages related state
   final Option<Either<Failure, List<ChatMessage>>> failureOrMessagesOpt;
@@ -21,6 +22,7 @@ class ChatState extends Equatable {
   const ChatState({
     this.isLoading = false,
     this.participantsMap = const {},
+    this.unreadCountMap = const {},
     this.failureOrConversationsOpt = const None(),
     this.failureOrMessagesOpt = const None(),
     this.selectedConversationIdOpt = const None(),
@@ -37,6 +39,7 @@ class ChatState extends Equatable {
         isSending,
         failOrSendSuccessOpt,
         participantsMap,
+        unreadCountMap,
       ];
 
   List<ChatConversation> get conversationsOrEmpty {
@@ -53,6 +56,10 @@ class ChatState extends Equatable {
     return participantsMap[participantId];
   }
 
+  int getUnreadCount(String conversationId) {
+    return unreadCountMap[conversationId] ?? 0;
+  }
+
   ChatState copyWith({
     bool? isLoading,
     Option<Either<Failure, List<ChatConversation>>>? failureOrConversationsOpt,
@@ -61,6 +68,7 @@ class ChatState extends Equatable {
     bool? isSending,
     Option<Either<Failure, Unit>>? failOrSendSuccessOpt,
     Map<String, User>? participantsMap,
+    Map<String, int>? unreadCountMap,
   }) {
     return ChatState(
       isLoading: isLoading ?? this.isLoading,
@@ -72,6 +80,7 @@ class ChatState extends Equatable {
       isSending: isSending ?? this.isSending,
       failOrSendSuccessOpt: failOrSendSuccessOpt ?? this.failOrSendSuccessOpt,
       participantsMap: participantsMap ?? this.participantsMap,
+      unreadCountMap: unreadCountMap ?? this.unreadCountMap,
     );
   }
 }
