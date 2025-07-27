@@ -7,6 +7,7 @@ import 'package:live_chat_app/presentation/core/extensions/build_context_transla
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_button.dart';
 import 'package:live_chat_app/presentation/core/widgets/custom_text_field.dart';
+import 'package:live_chat_app/presentation/core/widgets/glassy_snackbar.dart';
 import 'package:live_chat_app/presentation/core/widgets/language_selector.dart';
 
 class LoginPage extends StatefulWidget {
@@ -69,11 +70,10 @@ class _LoginPageState extends State<LoginPage> {
                 _ => context.tr.unknownError,
               };
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
+              GlassySnackBar.show(
+                context,
+                message: message,
+                type: GlassySnackBarType.failure,
               );
             },
           );

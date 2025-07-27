@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/widgets/country_flag.dart';
 
 class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});
@@ -99,14 +100,9 @@ class _LanguageOption extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Text(
-                  languageCode.toUpperCase(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: CountryFlag(
+                  languageCode: languageCode,
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 16),
