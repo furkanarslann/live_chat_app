@@ -4,9 +4,9 @@ import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
 import 'package:live_chat_app/application/chat/create_chat_state.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/presentation/core/widgets/scrollable_bottom_sheet.dart';
-import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/chat/chat_page.dart';
+import 'widgets/chat_user_tile.dart';
 
 class CreateNewChatBottomSheet extends StatefulWidget {
   const CreateNewChatBottomSheet({super.key});
@@ -139,19 +139,9 @@ class _CreateNewChatBottomSheetState extends State<CreateNewChatBottomSheet> {
                           separatorBuilder: (context, index) => const Divider(),
                           itemBuilder: (context, index) {
                             final user = filteredUsers[index];
-                            return GestureDetector(
+                            return ChatUserTile(
+                              user: user,
                               onTap: () => _onUserTap(user),
-                              child: ListTile(
-                                leading: UserAvatar(
-                                  imageUrl: user.displayPhotoUrl,
-                                  radius: 20,
-                                ),
-                                title: Text(user.fullName),
-                                subtitle: Text(user.email),
-                                trailing: const Icon(
-                                  Icons.chevron_right_outlined,
-                                ),
-                              ),
                             );
                           },
                         );

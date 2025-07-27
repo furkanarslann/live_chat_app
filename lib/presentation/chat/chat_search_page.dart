@@ -5,13 +5,13 @@ import 'package:live_chat_app/application/chat/chat_search_state.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_state.dart';
 import 'package:live_chat_app/application/auth/user_cubit.dart';
-import 'package:live_chat_app/domain/auth/user.dart';
-import 'package:live_chat_app/domain/chat/chat_search_result.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
-import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
-import 'chat_page.dart';
+import 'widgets/chat_search_input.dart';
+import 'widgets/chat_search_empty_state.dart';
+import 'widgets/chat_search_no_results_state.dart';
+import 'widgets/chat_search_result_tile.dart';
 
 class ChatSearchPage extends StatefulWidget {
   const ChatSearchPage({super.key});
@@ -63,10 +63,11 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
                 backgroundColor: context.colors.background,
                 title: Text(
                   context.tr.searchResults,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: context.colors.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back),
@@ -75,7 +76,7 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
               ),
               body: Column(
                 children: [
-                  _SearchBar(
+                  ChatSearchInput(
                     controller: _searchController,
                     focusNode: _focusNode,
                   ),
@@ -83,7 +84,7 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
                     child: BlocBuilder<ChatSearchCubit, ChatSearchState>(
                       builder: (context, searchState) {
                         if (searchState.searchQuery.isEmpty) {
-                          return _SearchEmptyState();
+                          return const ChatSearchEmptyState();
                         }
 
                         if (searchState.isSearching) {
@@ -100,14 +101,23 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
                                 );
 
                         if (results.isEmpty) {
-                          return _NoSearchResultsState(
+                          return ChatSearchNoResultsState(
                             query: searchState.searchQuery,
                           );
                         }
 
-                        return _SearchResultsList(
-                          results: results,
-                          currentUser: currentUser,
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.md,
+                          ),
+                          itemCount: results.length,
+                          itemBuilder: (context, index) {
+                            final result = results[index];
+                            return ChatSearchResultTile(
+                              result: result,
+                              currentUser: currentUser,
+                            );
+                          },
                         );
                       },
                     ),
@@ -118,243 +128,6 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
           },
         );
       },
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-
-  const _SearchBar({
-    required this.controller,
-    required this.focusNode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(Spacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        decoration: InputDecoration(
-          hintText: context.tr.searchChats,
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: controller.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    controller.clear();
-                    focusNode.requestFocus();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-        textInputAction: TextInputAction.search,
-      ),
-    );
-  }
-}
-
-class _SearchEmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(Spacing.lg),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.search,
-                size: 48,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: Spacing.lg),
-            Text(
-              context.tr.searchChats,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              context.tr.searchDescription,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NoSearchResultsState extends StatelessWidget {
-  final String query;
-
-  const _NoSearchResultsState({required this.query});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(Spacing.lg),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.search_off,
-                size: 48,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: Spacing.lg),
-            Text(
-              context.tr.noSearchResults,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              context.tr.noResultsForQuery(query),
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchResultsList extends StatelessWidget {
-  final List<ChatSearchResult> results;
-  final User currentUser;
-
-  const _SearchResultsList({
-    required this.results,
-    required this.currentUser,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        final result = results[index];
-        return _SearchResultTile(
-          result: result,
-          currentUser: currentUser,
-        );
-      },
-    );
-  }
-}
-
-class _SearchResultTile extends StatelessWidget {
-  final ChatSearchResult result;
-  final User currentUser;
-
-  const _SearchResultTile({
-    required this.result,
-    required this.currentUser,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: Spacing.sm),
-      child: ListTile(
-        leading: UserAvatar(
-          imageUrl: result.participant.displayPhotoUrl,
-        ),
-        title: Text(
-          result.participant.fullName,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (result.type == ChatSearchResultType.message &&
-                result.message != null)
-              Text(
-                result.message!.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-              ),
-            const SizedBox(height: 4),
-            Text(
-              result.type == ChatSearchResultType.conversation
-                  ? context.tr.conversationType
-                  : context.tr.messageType,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
-                  ),
-            ),
-          ],
-        ),
-        trailing: Icon(
-          result.type == ChatSearchResultType.conversation
-              ? Icons.chat_bubble_outline
-              : Icons.message_outlined,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatPage(conversation: result.conversation),
-            ),
-          );
-        },
-      ),
     );
   }
 }

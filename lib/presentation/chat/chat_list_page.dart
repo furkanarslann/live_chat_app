@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../../application/auth/user_cubit.dart';
 import '../../application/chat/chat_cubit.dart';
 import '../../application/chat/chat_state.dart';
-import '../../application/chat/chat_search_cubit.dart';
 import '../../domain/auth/user.dart';
 import '../../application/chat/create_chat_cubit.dart';
 import '../../domain/chat/chat_conversation.dart';
 import '../core/app_theme.dart';
 import '../core/extensions/build_context_translate_ext.dart';
-import '../core/widgets/user_avatar.dart';
-import 'widgets/conversation_tile_shimmer.dart';
-import 'chat_page.dart';
+import 'widgets/chat_search_bar.dart';
+import 'widgets/chat_filter_chips.dart';
+import 'widgets/chat_archived_button.dart';
+import 'widgets/chat_empty_content.dart';
+import 'widgets/chat_conversation_tile.dart';
 import 'create_new_chat_bottom_sheet.dart';
-import 'chat_search_page.dart';
 import '../../setup_dependencies.dart';
 
 class ChatListPage extends StatefulWidget {
@@ -93,8 +92,8 @@ class _ChatListPageState extends State<ChatListPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _SearchBar(),
-                const _FilterChips(),
+                const ChatSearchBar(),
+                const ChatFilterChips(),
                 Expanded(child: _ChatListContent(currentUser: user)),
               ],
             ),
@@ -126,7 +125,7 @@ class _ChatListContent extends StatelessWidget {
               ),
             ),
             (conversations) {
-              if (conversations.isEmpty) return _ChatListEmptyContent();
+              if (conversations.isEmpty) return const ChatEmptyContent();
 
               final filteredConversations = state.getNonArchivedConversations(
                 currentUser,
@@ -139,7 +138,7 @@ class _ChatListContent extends StatelessWidget {
                 slivers: [
                   if (archivedCount > 0)
                     SliverToBoxAdapter(
-                      child: _ArchivedButton(
+                      child: ChatArchivedButton(
                         count: archivedCount,
                         onTap: () {
                           Navigator.push(
@@ -155,7 +154,7 @@ class _ChatListContent extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final conversation = filteredConversations[index];
-                        return _ConversationTile(
+                        return ChatConversationTile(
                           conversation: conversation,
                           currentUser: currentUser,
                         );
@@ -169,278 +168,6 @@ class _ChatListContent extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  const _SearchBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(Spacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider(
-                  create: (_) => getIt<ChatSearchCubit>(),
-                  child: const ChatSearchPage(),
-                ),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.search,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  context.tr.searchChats,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
-                      ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.4),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChips extends StatelessWidget {
-  const _FilterChips({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.md,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              _FilterChip(
-                label: context.tr.all,
-                isSelected: true,
-                onTap: () {
-                  // TODO(Furkan): Implement filter
-                },
-              ),
-              const SizedBox(width: Spacing.sm),
-              _FilterChip(
-                label: context.tr.unread,
-                isSelected: false,
-                onTap: () {
-                  // TODO(Furkan): Implement filter
-                },
-              ),
-              const SizedBox(width: Spacing.sm),
-              _FilterChip(
-                label: context.tr.favorites,
-                isSelected: false,
-                onTap: () {
-                  // TODO(Furkan): Implement filter
-                },
-              ),
-              const SizedBox(width: Spacing.sm),
-              _FilterChip(
-                label: context.tr.groups,
-                isSelected: false,
-                onTap: () {
-                  // TODO(Furkan): Implement filter
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String? label;
-  final IconData? icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    this.label,
-    this.icon,
-    required this.isSelected,
-    required this.onTap,
-  }) : assert(label != null || icon != null);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        color: isSelected
-            ? colorScheme.primaryContainer
-            : theme.cardColor.withValues(alpha: .7),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            constraints: const BoxConstraints(
-              minWidth: 68,
-              minHeight: 36,
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: label != null ? 16 : 12,
-            ),
-            child: Center(
-              child: icon != null
-                  ? Icon(
-                      icon,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface.withValues(alpha: 0.7),
-                      semanticLabel: 'Add filter',
-                    )
-                  : Text(
-                      label!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurface.withValues(alpha: 0.7),
-                        fontWeight: isSelected ? FontWeight.w600 : null,
-                      ),
-                    ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ArchivedButton extends StatelessWidget {
-  final VoidCallback onTap;
-  final int count;
-
-  const _ArchivedButton({
-    required this.onTap,
-    required this.count,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.all(Spacing.sm),
-      child: Material(
-        color: theme.cardColor.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 72),
-            padding: const EdgeInsets.symmetric(
-              horizontal: Spacing.md,
-              vertical: Spacing.sm,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(Spacing.sm),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.archive_outlined,
-                    color: theme.colorScheme.primary,
-                    semanticLabel: context.tr.archived,
-                  ),
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr.archived,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$count ${context.tr.conversations}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -500,7 +227,7 @@ class ArchivedConversationsPage extends StatelessWidget {
                       itemCount: archivedConversations.length,
                       itemBuilder: (context, index) {
                         final conversation = archivedConversations[index];
-                        return _ConversationTile(
+                        return ChatConversationTile(
                           conversation: conversation,
                           currentUser: currentUser,
                         );
@@ -511,250 +238,5 @@ class ArchivedConversationsPage extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-class _ChatListEmptyContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(Spacing.lg),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.chat_bubble_outline,
-                size: 48,
-                color: theme.colorScheme.primary,
-                semanticLabel: context.tr.noConversations,
-              ),
-            ),
-            const SizedBox(height: Spacing.lg),
-            Text(
-              context.tr.noConversations,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              context.tr.startChatting,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConversationTile extends StatelessWidget {
-  final ChatConversation conversation;
-  final User currentUser;
-
-  const _ConversationTile({
-    required this.conversation,
-    required this.currentUser,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Slidable(
-      key: ValueKey(conversation.id),
-      startActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (_) {
-              context.read<UserCubit>().togglePinConversation(conversation.id);
-            },
-            backgroundColor:
-                currentUser.chatPreferences.isPinnedBy(conversation.id)
-                    ? Colors.orange
-                    : Colors.blue,
-            foregroundColor: Colors.white,
-            icon: currentUser.chatPreferences.isPinnedBy(conversation.id)
-                ? Icons.push_pin_outlined
-                : Icons.push_pin,
-            label: currentUser.chatPreferences.isPinnedBy(conversation.id)
-                ? context.tr.unpin
-                : context.tr.pin,
-          ),
-        ],
-      ),
-      endActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (_) {
-              context
-                  .read<UserCubit>()
-                  .toggleArchiveConversation(conversation.id);
-            },
-            backgroundColor:
-                currentUser.chatPreferences.isArchivedBy(conversation.id)
-                    ? Colors.orange
-                    : const Color(0xFF7BC043),
-            foregroundColor: Colors.white,
-            icon: currentUser.chatPreferences.isArchivedBy(conversation.id)
-                ? Icons.unarchive
-                : Icons.archive,
-            label: currentUser.chatPreferences.isArchivedBy(conversation.id)
-                ? context.tr.unarchive
-                : context.tr.archived,
-          ),
-          SlidableAction(
-            onPressed: (_) {
-              context.read<ChatCubit>().deleteConversation(conversation.id);
-            },
-            backgroundColor: const Color(0xFFFE4A49),
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: context.tr.delete,
-          ),
-        ],
-      ),
-      child: _ConversationTileContent(
-        conversation: conversation,
-        currentUser: currentUser,
-        onTap: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatPage(conversation: conversation),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ConversationTileContent extends StatelessWidget {
-  final ChatConversation conversation;
-  final User currentUser;
-  final VoidCallback onTap;
-
-  const _ConversationTileContent({
-    required this.conversation,
-    required this.currentUser,
-    required this.onTap,
-  });
-  @override
-  Widget build(BuildContext context) {
-    final isPinned = currentUser.chatPreferences.isPinnedBy(conversation.id);
-
-    return BlocBuilder<ChatCubit, ChatState>(
-      builder: (context, chatState) {
-        final participantId = conversation.getParticipantId(currentUser);
-        final participant = chatState.findParticipant(participantId);
-        if (participant == null) return const ConversationTileShimmer();
-
-        final unreadCount = chatState.getUnreadCount(conversation.id);
-        final lastMessage = chatState.getLastMessage(conversation.id);
-        final isLastMessageSentByMe = lastMessage?.senderId == currentUser.id;
-
-        return ListTile(
-          leading: UserAvatar(
-            imageUrl: participant.displayPhotoUrl,
-          ),
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  participant.fullName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: unreadCount > 0 ? FontWeight.bold : null,
-                      ),
-                ),
-              ),
-              if (isPinned)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Icon(
-                    Icons.push_pin,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-            ],
-          ),
-          subtitle: lastMessage != null
-              ? Row(
-                  children: [
-                    if (isLastMessageSentByMe) ...[
-                      MessageReadStatus(
-                        isRead: lastMessage.isRead,
-                        isMe: isLastMessageSentByMe,
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    Text(
-                      lastMessage.content,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight:
-                                unreadCount > 0 ? FontWeight.bold : null,
-                          ),
-                    ),
-                  ],
-                )
-              : null,
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (lastMessage != null)
-                Text(
-                  _formatTime(lastMessage.timestamp),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              if (unreadCount > 0)
-                Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    unreadCount.toString(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                  ),
-                ),
-            ],
-          ),
-          onTap: onTap,
-        );
-      },
-    );
-  }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final difference = now.difference(time);
-
-    if (difference.inDays > 7) {
-      return '${time.day}/${time.month}/${time.year}';
-    } else if (difference.inDays > 0) {
-      return '${time.day}/${time.month}';
-    } else {
-      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    }
   }
 }
