@@ -52,6 +52,7 @@ class _CreateNewChatBottomSheetState extends State<CreateNewChatBottomSheet> {
       },
       (conversation) {
         Navigator.pop(context);
+        // Navigate to chat page - conversation will be created when first message is sent
         Navigator.push(
           context,
           MaterialPageRoute(

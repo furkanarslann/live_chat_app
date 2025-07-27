@@ -61,4 +61,4 @@ class CreateChatState extends Equatable {
         failureOrUsersOpt,
         failureOrSuccessOpt,
       ];
-} 
+}

@@ -80,16 +80,12 @@ class CreateChatCubit extends Cubit<CreateChatState> {
           .get();
 
       if (!conversationDoc.exists) {
-        // Create new conversation
+        // Create a temporary conversation object for navigation
+        // The actual conversation will be created when the first message is sent
         final conversation = ChatConversation(
           id: conversationId,
           participants: [currentUserId, user.id],
         );
-
-        await _firestore
-            .collection('conversations')
-            .doc(conversationId)
-            .set(conversation.toMap());
 
         emit(state.copyWith(
           isLoading: false,
@@ -109,7 +105,6 @@ class CreateChatCubit extends Cubit<CreateChatState> {
           failureOrSuccessOpt: some(right(unit)),
         ));
 
-        // No need to update participant information since it's now dynamic
         return some(existingConversation);
       }
     } catch (e) {

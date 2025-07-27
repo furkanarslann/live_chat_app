@@ -152,16 +152,31 @@ class ChatRepositoryImpl implements ChatRepository {
         ...message.toMap(),
       });
 
-      // Update conversation's last message
-      await _conversationsRef.doc(conversationId).update({
-        'lastMessage': {
-          ...message.toMap(),
-          'id': messageRef.id,
-        },
-        'unreadCount': FieldValue.increment(
-          message.senderId == currentUserId ? 0 : 1,
-        ),
-      });
+      // Check if conversation exists, if not create it
+      final conversationDoc = await _conversationsRef.doc(conversationId).get();
+      
+      if (!conversationDoc.exists) {
+        // Create the conversation with the first message
+        final conversation = ChatConversation(
+          id: conversationId,
+          participants: [currentUserId, participantId],
+          lastMessage: message.copyWith(id: messageRef.id),
+          createdAt: DateTime.now(),
+        );
+        
+        await _conversationsRef.doc(conversationId).set(conversation.toMap());
+      } else {
+        // Update existing conversation's last message
+        await _conversationsRef.doc(conversationId).update({
+          'lastMessage': {
+            ...message.toMap(),
+            'id': messageRef.id,
+          },
+          'unreadCount': FieldValue.increment(
+            message.senderId == currentUserId ? 0 : 1,
+          ),
+        });
+      }
 
       return const Right(unit);
     } catch (e) {
