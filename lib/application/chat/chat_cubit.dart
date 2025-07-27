@@ -88,6 +88,9 @@ class ChatCubit extends Cubit<ChatState> {
       failureOrMessagesOpt: Some(failureOrMessages),
     ));
 
+    // Mark messages as read when user opens conversation
+    await markMessagesAsReadOnView(conversationId);
+
     // Then start watching for updates
     _watchMessages(conversationId);
   }
@@ -122,9 +125,16 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  Future<void> markMessageAsRead(String messageId) async {
-    final result = await _repository.markMessageAsRead(messageId);
-    // TODO(Furkan): Handle mark message as read
+  /// Mark all unread messages as read when conversation is opened
+  Future<void> markMessagesAsRead(List<String> messageIds) async {
+    await _repository.markMessagesAsRead(messageIds);
+  }
+
+  /// Automatically mark messages as read when user is viewing the conversation
+  Future<void> markMessagesAsReadOnView(
+    String conversationId,
+  ) async {
+    await _repository.markConversationMessagesAsRead(conversationId);
   }
 
   Future<void> clearConversationChatHistory(String conversationId) async {

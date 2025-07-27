@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
+import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../../../application/chat/chat_cubit.dart';
 import '../../../application/chat/chat_state.dart';
 import '../../../domain/models/chat_conversation.dart';
@@ -258,6 +259,10 @@ class _FilledChatContentState extends State<_FilledChatContent> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom(context, animated: false);
+      // Mark messages as read when conversation is clicked
+      context
+          .read<ChatCubit>()
+          .markMessagesAsReadOnView(widget.conversation.id);
     });
   }
 
@@ -281,6 +286,27 @@ class _FilledChatContentState extends State<_FilledChatContent> {
     );
   }
 
+  /// Mark new unread messages as read when they arrive
+  void _markNewMessagesAsRead(BuildContext context, ChatState state) {
+    final messages = state.messagesOrEmpty;
+    if (messages.isEmpty) return;
+
+    final currentUserId = context.userId;
+    final unreadMessageIds = <String>[];
+
+    // Find unread messages where current user is the receiver
+    for (final message in messages) {
+      if (message.receiverId == currentUserId && !message.isRead) {
+        unreadMessageIds.add(message.id);
+      }
+    }
+
+    // Mark unread messages as read
+    if (unreadMessageIds.isNotEmpty) {
+      context.read<ChatCubit>().markMessagesAsRead(unreadMessageIds);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatCubit, ChatState>(
@@ -290,6 +316,10 @@ class _FilledChatContentState extends State<_FilledChatContent> {
       },
       listener: (context, state) {
         if (state.messagesOrEmpty.isEmpty) return;
+
+        // Mark new messages as read when they arrive
+        _markNewMessagesAsRead(context, state);
+
         _scrollToBottom(context);
       },
       builder: (context, state) {
@@ -301,6 +331,8 @@ class _FilledChatContentState extends State<_FilledChatContent> {
           itemBuilder: (context, index) {
             final message = messages[index];
             final isMe = message.senderId == context.userId;
+            final isLastMessage = index == messages.length - 1;
+            final isPending = isMe && isLastMessage && state.isSending;
 
             final participantId =
                 widget.conversation.getParticipantId(context.currentUser);
@@ -311,6 +343,7 @@ class _FilledChatContentState extends State<_FilledChatContent> {
               message: message,
               isMe: isMe,
               avatar: participantAvatar,
+              isPending: isPending,
             );
           },
         );
@@ -359,11 +392,13 @@ class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
   final String avatar;
+  final bool isPending;
 
   const _MessageBubble({
     required this.message,
     required this.isMe,
     required this.avatar,
+    this.isPending = false,
   });
 
   @override
@@ -393,7 +428,7 @@ class _MessageBubble extends StatelessWidget {
                 vertical: 10,
               ),
               decoration: BoxDecoration(
-                color: isMe ? colorScheme.primary : theme.cardColor,
+                color: isMe ? context.colors.primary : context.colors.surface,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
@@ -427,12 +462,10 @@ class _MessageBubble extends StatelessWidget {
                       ),
                       if (isMe) ...[
                         const SizedBox(width: 4),
-                        Icon(
-                          message.isRead ? Icons.done_all : Icons.done,
-                          size: 14,
-                          color: message.isRead
-                              ? Colors.blue
-                              : colorScheme.onPrimary.withValues(alpha: 0.7),
+                        _MessageReadStatus(
+                          isRead: message.isRead,
+                          isMe: isMe,
+                          isPending: isPending,
                         ),
                       ],
                     ],
@@ -443,15 +476,9 @@ class _MessageBubble extends StatelessWidget {
           ),
           if (isMe && avatarExist) ...[
             const SizedBox(width: 8),
-            CircleAvatar(
+            UserAvatar(
+              imageUrl: avatar,
               radius: 16,
-              backgroundColor: colorScheme.primary,
-              child: Text(
-                'Me',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onPrimary,
-                ),
-              ),
             ),
           ] else if (isMe) ...[
             const SizedBox(width: 40),
@@ -463,5 +490,87 @@ class _MessageBubble extends StatelessWidget {
 
   String _formatTimestamp(DateTime timestamp) {
     return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Widget to display message read status with appropriate icons and colors
+class _MessageReadStatus extends StatelessWidget {
+  final bool isRead;
+  final bool isMe;
+  final bool isPending;
+
+  const _MessageReadStatus({
+    required this.isRead,
+    required this.isMe,
+    this.isPending = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Only show read status for messages sent by current user
+    if (!isMe) return const SizedBox.shrink();
+
+    return Tooltip(
+      message: _getStatusTooltip(context),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return ScaleTransition(
+            scale: animation,
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+        child: _buildStatusIcon(context),
+      ),
+    );
+  }
+
+  Widget _buildStatusIcon(BuildContext context) {
+    if (isPending) {
+      // Pending/sending state
+      return SizedBox(
+        key: const ValueKey('pending'),
+        width: 14,
+        height: 14,
+        child: CircularProgressIndicator(
+          strokeWidth: 1.5,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
+          ),
+        ),
+      );
+    }
+
+    // Sent or read state
+    return Icon(
+      isRead ? Icons.done_all : Icons.done,
+      key: ValueKey(isRead ? 'read' : 'sent'),
+      size: 14,
+      color: _getReadStatusColor(context, isRead),
+    );
+  }
+
+  Color _getReadStatusColor(BuildContext context, bool isRead) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (isRead) {
+      return Colors.lightBlueAccent;
+    } else {
+      // Sent but not read: Gray color
+      return colorScheme.onPrimary.withValues(alpha: 0.7);
+    }
+  }
+
+  String _getStatusTooltip(BuildContext context) {
+    if (isPending) {
+      return context.tr.sending;
+    } else if (isRead) {
+      return context.tr.read;
+    } else {
+      return context.tr.sent;
+    }
   }
 }

@@ -28,4 +28,4 @@ class CountryFlag extends StatelessWidget {
       style: TextStyle(fontSize: size),
     );
   }
-} 
+}

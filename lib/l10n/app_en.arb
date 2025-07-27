@@ -282,5 +282,17 @@
   "clear": "Clear",
   "@clear": {
     "description": "Action to clear/delete something"
+  },
+  "sending": "Sending...",
+  "@sending": {
+    "description": "Message status - currently sending"
+  },
+  "sent": "Sent",
+  "@sent": {
+    "description": "Message status - sent but not read"
+  },
+  "read": "Read",
+  "@read": {
+    "description": "Message status - read by recipient"
   }
 }

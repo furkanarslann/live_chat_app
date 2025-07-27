@@ -112,5 +112,8 @@
       }
     }
   },
-  "clear": "Löschen"
+  "clear": "Löschen",
+  "sending": "Wird gesendet...",
+  "sent": "Gesendet",
+  "read": "Gelesen"
 }

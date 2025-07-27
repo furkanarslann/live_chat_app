@@ -567,7 +567,7 @@ class _ConversationTile extends StatelessWidget {
       child: _ConversationTileContent(
         conversation: conversation,
         currentUser: currentUser,
-        onTap: () {
+        onTap: () async {          
           Navigator.push(
             context,
             MaterialPageRoute(

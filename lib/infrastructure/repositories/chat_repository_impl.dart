@@ -172,7 +172,96 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId) async {
     try {
+      final currentUserId = _currentUserId;
+
+      // Get the message to check if current user is the receiver
+      final messageDoc = await _messagesRef.doc(messageId).get();
+      if (!messageDoc.exists) {
+        return const Left(UnexpectedFailure());
+      }
+
+      final messageData = messageDoc.data() as Map<String, dynamic>;
+      final receiverId = messageData['receiverId'] as String;
+
+      // Only the receiver can mark messages as read
+      if (receiverId != currentUserId) {
+        return const Left(UnexpectedFailure());
+      }
+
       await _messagesRef.doc(messageId).update({'isRead': true});
+      return const Right(unit);
+    } catch (e) {
+      return const Left(UnexpectedFailure());
+    }
+  }
+
+  /// Mark multiple messages as read (only for receiver)
+  @override
+  Future<Either<Failure, Unit>> markMessagesAsRead(
+    List<String> messageIds,
+  ) async {
+    try {
+      final currentUserId = _currentUserId;
+
+      // Get all messages to validate receiver permissions
+      final messagesSnapshot = await _messagesRef
+          .where(FieldPath.documentId, whereIn: messageIds)
+          .get();
+
+      final batch = _firestore.batch();
+      final validMessageIds = <String>[];
+
+      for (final doc in messagesSnapshot.docs) {
+        final messageData = doc.data() as Map<String, dynamic>;
+        final receiverId = messageData['receiverId'] as String;
+
+        // Only include messages where current user is the receiver
+        if (receiverId == currentUserId) {
+          batch.update(doc.reference, {'isRead': true});
+          validMessageIds.add(doc.id);
+        }
+      }
+
+      if (validMessageIds.isNotEmpty) {
+        await batch.commit();
+      }
+
+      return const Right(unit);
+    } catch (e) {
+      return const Left(UnexpectedFailure());
+    }
+  }
+
+  /// Mark all unread messages in a conversation as read (only for receiver)
+  @override
+  Future<Either<Failure, Unit>> markConversationMessagesAsRead(
+    String conversationId,
+  ) async {
+    try {
+      final currentUserId = _currentUserId;
+
+      // Get all unread messages in the conversation where current user is receiver
+      final messagesSnapshot = await _messagesRef
+          .where('conversationId', isEqualTo: conversationId)
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      if (messagesSnapshot.docs.isEmpty) {
+        return const Right(unit);
+      }
+
+      final batch = _firestore.batch();
+      for (final doc in messagesSnapshot.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+
+      // Update conversation unread count
+      batch.update(_conversationsRef.doc(conversationId), {
+        'unreadCount': FieldValue.increment(-messagesSnapshot.docs.length),
+      });
+
+      await batch.commit();
       return const Right(unit);
     } catch (e) {
       return const Left(UnexpectedFailure());
