@@ -24,10 +24,10 @@ class ChatFilterChips extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 spacing: Spacing.sm,
                 children: [
-                  ChatFilterChip(filter: ChatFilter.all),
-                  ChatFilterChip(filter: ChatFilter.unread),
-                  ChatFilterChip(filter: ChatFilter.favorites),
-                  ChatFilterChip(filter: ChatFilter.groups),
+                  ChatFilterChip(filter: ChatConversationFilter.all),
+                  ChatFilterChip(filter: ChatConversationFilter.unread),
+                  ChatFilterChip(filter: ChatConversationFilter.favorites),
+                  ChatFilterChip(filter: ChatConversationFilter.groups),
                 ],
               ),
             ),
@@ -39,7 +39,7 @@ class ChatFilterChips extends StatelessWidget {
 }
 
 class ChatFilterChip extends StatelessWidget {
-  final ChatFilter filter;
+  final ChatConversationFilter filter;
 
   const ChatFilterChip({
     super.key,
@@ -56,13 +56,13 @@ class ChatFilterChip extends StatelessWidget {
 
         String getLabel() {
           switch (filter) {
-            case ChatFilter.all:
+            case ChatConversationFilter.all:
               return context.tr.all;
-            case ChatFilter.unread:
+            case ChatConversationFilter.unread:
               return context.tr.unread;
-            case ChatFilter.favorites:
+            case ChatConversationFilter.favorites:
               return context.tr.favorites;
-            case ChatFilter.groups:
+            case ChatConversationFilter.groups:
               return context.tr.groups;
           }
         }
@@ -80,7 +80,7 @@ class ChatFilterChip extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                context.read<ChatCubit>().changeFilter(filter);
+                context.read<ChatCubit>().changeConversationFilter(filter);
               },
               borderRadius: BorderRadius.circular(20),
               child: Container(

@@ -25,15 +25,15 @@ abstract class ChatRepository {
     required String conversationId,
   });
   Future<Either<Failure, Unit>> markMessageAsRead(String messageId);
-  
+
   /// Mark multiple messages as read (only for receiver)
   Future<Either<Failure, Unit>> markMessagesAsRead(List<String> messageIds);
-  
+
   /// Mark all unread messages in a conversation as read (only for receiver)
   Future<Either<Failure, Unit>> markConversationMessagesAsRead(
     String conversationId,
   );
-  
+
   /// Get unread message counts for all conversations where current user is receiver
   Future<Map<String, int>> getUnreadMessagesCount();
 }

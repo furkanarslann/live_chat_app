@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../../application/auth/user_cubit.dart';
 import '../../application/chat/chat_cubit.dart';
@@ -18,15 +17,10 @@ import 'widgets/chat_conversation_tile.dart';
 import 'create_new_chat_bottom_sheet.dart';
 import '../../setup_dependencies.dart';
 
-class ChatListPage extends StatefulWidget {
+class ChatListPage extends StatelessWidget {
   const ChatListPage({super.key});
 
-  @override
-  State<ChatListPage> createState() => _ChatListPageState();
-}
-
-class _ChatListPageState extends State<ChatListPage> {
-  void _showCreateNewChatSheet() async {
+  void _showCreateNewChatSheet(BuildContext context) async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -36,16 +30,6 @@ class _ChatListPageState extends State<ChatListPage> {
         child: const CreateNewChatBottomSheet(),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context
-          .read<ChatCubit>()
-          .loadParticipantsForConversations(currentUserId: context.userId);
-    });
   }
 
   @override
@@ -84,7 +68,7 @@ class _ChatListPageState extends State<ChatListPage> {
                     minWidth: 48,
                     minHeight: 48,
                   ),
-                  onPressed: _showCreateNewChatSheet,
+                  onPressed: () => _showCreateNewChatSheet(context),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -111,7 +95,7 @@ class _ChatListContent extends StatelessWidget {
 
   Future<void> _refreshConversations(BuildContext context) async {
     final chatCubit = context.read<ChatCubit>();
-    await chatCubit.refreshConversations(currentUserId: context.userId);
+    chatCubit.initialize();
   }
 
   @override

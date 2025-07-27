@@ -60,7 +60,10 @@ Future<void> setupDependencies() async {
   );
 
   getIt.registerFactory<ChatCubit>(
-    () => ChatCubit(getIt<ChatRepository>()),
+    () => ChatCubit(
+      getIt<ChatRepository>(),
+      getIt<FirebaseAuth>(),
+    ),
   );
 
   getIt.registerFactory<UserCubit>(

@@ -125,13 +125,9 @@ class _ChatPageState extends State<ChatPage> {
                       message: context.tr.errorOccured,
                       type: GlassySnackBarType.failure,
                     );
-                    // Clear error state after showing message
-                    context.read<ChatCubit>().clearErrorState();
                   },
-                  (success) {
+                  (_) {
                     // Message sent successfully - no need to show anything
-                    // Clear success state
-                    context.read<ChatCubit>().clearErrorState();
                   },
                 ),
               );

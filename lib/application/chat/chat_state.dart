@@ -5,7 +5,7 @@ import '../../domain/core/failures.dart';
 import '../../domain/chat/chat_conversation.dart';
 import '../../domain/chat/chat_message.dart';
 
-enum ChatFilter {
+enum ChatConversationFilter {
   all,
   unread,
   favorites,
@@ -22,7 +22,7 @@ class ChatState extends Equatable {
   final Map<String, int> unreadCountMap;
 
   // Filter state
-  final ChatFilter activeFilter;
+  final ChatConversationFilter activeFilter;
 
   // Messages related state
   final Option<Either<Failure, List<ChatMessage>>> failureOrMessagesOpt;
@@ -38,7 +38,7 @@ class ChatState extends Equatable {
     this.selectedConversationIdOpt = const None(),
     this.isSending = false,
     this.failOrSendSuccessOpt = const None(),
-    this.activeFilter = ChatFilter.all,
+    this.activeFilter = ChatConversationFilter.all,
   });
 
   @override
@@ -96,17 +96,17 @@ class ChatState extends Equatable {
     User currentUser,
   ) {
     switch (activeFilter) {
-      case ChatFilter.all:
+      case ChatConversationFilter.all:
         return conversations;
-      case ChatFilter.unread:
+      case ChatConversationFilter.unread:
         return conversations.where((conv) {
           final unreadCount = getUnreadCount(conv.id);
           return unreadCount > 0;
         }).toList();
-      case ChatFilter.favorites:
+      case ChatConversationFilter.favorites:
         // For now, return empty list as favorite functionality is not implemented
         return [];
-      case ChatFilter.groups:
+      case ChatConversationFilter.groups:
         // For now, return empty list as group functionality is not implemented
         return [];
     }
@@ -134,7 +134,7 @@ class ChatState extends Equatable {
     Option<Either<Failure, Unit>>? failOrSendSuccessOpt,
     Map<String, User>? participantsMap,
     Map<String, int>? unreadCountMap,
-    ChatFilter? activeFilter,
+    ChatConversationFilter? activeFilter,
   }) {
     return ChatState(
       isLoading: isLoading ?? this.isLoading,

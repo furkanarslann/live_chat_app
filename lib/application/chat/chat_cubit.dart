@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:live_chat_app/domain/chat/chat_repository.dart';
@@ -6,46 +7,56 @@ import 'package:live_chat_app/domain/auth/user.dart';
 import 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  final ChatRepository _repository;
+  final ChatRepository _chatRepository;
+  final FirebaseAuth _authService;
+
   StreamSubscription? _conversationsSubscription;
   StreamSubscription? _messagesSubscription;
 
-  ChatCubit(this._repository) : super(const ChatState()) {
+  ChatCubit(this._chatRepository, this._authService)
+      : super(const ChatState()) {
+    initialize();
+  }
+
+  void initialize() {
+    // Fetch initial conversations and their participants
+    _fetchConversationParticipants();
+    // Load unread message counts
+    _loadUnreadMessageCounts();
+    // Start watching conversations
     _watchConversations();
   }
 
   void _watchConversations() {
     _conversationsSubscription?.cancel();
-    _conversationsSubscription = _repository.watchConversations().listen(
+    _conversationsSubscription = _chatRepository.watchConversations().listen(
       (failureOrConversations) async {
         emit(state.copyWith(
           failureOrConversationsOpt: Some(failureOrConversations),
         ));
 
         // Refresh unread counts when conversations are updated
-        await loadUnreadMessageCounts();
+        await _loadUnreadMessageCounts();
       },
     );
   }
 
   Future<void> clearConversationChatHistory(String conversationId) async {
-    await _repository.clearConversationChatHistory(conversationId);
+    await _chatRepository.clearConversationChatHistory(conversationId);
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    await _repository.deleteConversation(conversationId);
+    await _chatRepository.deleteConversation(conversationId);
   }
 
-  void changeFilter(ChatFilter filter) {
+  void changeConversationFilter(ChatConversationFilter filter) {
     emit(state.copyWith(activeFilter: filter));
   }
 
-  Future<void> loadParticipantsForConversations({
-    required String currentUserId,
-  }) async {
+  Future<void> _fetchConversationParticipants() async {
     // Ensure conversations are loaded first
     if (state.failureOrConversationsOpt.isNone()) {
-      final failOrConversations = await _repository.getConversations();
+      final failOrConversations = await _chatRepository.getConversations();
       emit(
         state.copyWith(failureOrConversationsOpt: Some(failOrConversations)),
       );
@@ -62,25 +73,27 @@ class ChatCubit extends Cubit<ChatState> {
     for (final conversation in conversations) {
       allParticipantIds.addAll(
         conversation.participants.where((participantId) {
-          return participantId != currentUserId;
+          return participantId != _authService.currentUser?.uid;
         }),
       );
     }
 
     // Batch load all participants efficiently
     if (allParticipantIds.isNotEmpty) {
-      final batchParticipants = await _repository.getConversationParticipants(
+      final batchParticipants =
+          await _chatRepository.getConversationParticipants(
         allParticipantIds.toList(),
       );
       emit(state.copyWith(
-          participantsMap: Map<String, User>.from(batchParticipants)));
+        participantsMap: Map<String, User>.from(batchParticipants),
+      ));
     } else {
       emit(state.copyWith(participantsMap: <String, User>{}));
     }
   }
 
-  Future<void> loadUnreadMessageCounts() async {
-    final unreadCountMap = await _repository.getUnreadMessagesCount();
+  Future<void> _loadUnreadMessageCounts() async {
+    final unreadCountMap = await _chatRepository.getUnreadMessagesCount();
     emit(state.copyWith(unreadCountMap: unreadCountMap));
   }
 
@@ -89,7 +102,8 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> loadSingleParticipant(String participantId) async {
-    final user = await _repository.getConversationParticipants([participantId]);
+    final user =
+        await _chatRepository.getConversationParticipants([participantId]);
     if (user.isNotEmpty) {
       emit(state.copyWith(
         participantsMap: {...state.participantsMap, ...user},
@@ -103,7 +117,7 @@ class ChatCubit extends Cubit<ChatState> {
     final conversationId = state.selectedConversationIdOpt.toNullable()!;
 
     // First fetch messages
-    final failureOrMessages = await _repository.getMessages(conversationId);
+    final failureOrMessages = await _chatRepository.getMessages(conversationId);
     emit(state.copyWith(
       failureOrMessagesOpt: Some(failureOrMessages),
     ));
@@ -117,7 +131,8 @@ class ChatCubit extends Cubit<ChatState> {
 
   void _watchMessages(String conversationId) {
     _messagesSubscription?.cancel();
-    _messagesSubscription = _repository.watchMessages(conversationId).listen(
+    _messagesSubscription =
+        _chatRepository.watchMessages(conversationId).listen(
       (failureOrMessages) {
         emit(state.copyWith(
           failureOrMessagesOpt: Some(failureOrMessages),
@@ -131,9 +146,12 @@ class ChatCubit extends Cubit<ChatState> {
 
     final conversationId = state.selectedConversationIdOpt.toNullable()!;
 
-    emit(state.copyWith(isSending: true));
+    emit(state.copyWith(
+      isSending: true,
+      failOrSendSuccessOpt: none(),
+    ));
 
-    final result = await _repository.sendMessage(
+    final result = await _chatRepository.sendMessage(
       content: content,
       participantId: participantId,
       conversationId: conversationId,
@@ -147,51 +165,14 @@ class ChatCubit extends Cubit<ChatState> {
 
   /// Mark all unread messages as read when conversation is opened
   Future<void> markMessagesAsRead(List<String> messageIds) async {
-    await _repository.markMessagesAsRead(messageIds);
+    await _chatRepository.markMessagesAsRead(messageIds);
   }
 
   /// Automatically mark messages as read when user is viewing the conversation
   Future<void> markMessagesAsReadOnView(
     String conversationId,
   ) async {
-    await _repository.markConversationMessagesAsRead(conversationId);
-  }
-
-  Future<void> refreshConversations({required String currentUserId}) async {
-    // Refetch conversations and participants
-    final failureOrConversations = await _repository.getConversations();
-    emit(state.copyWith(
-      failureOrConversationsOpt: Some(failureOrConversations),
-    ));
-
-    // Refresh unread counts
-    await loadUnreadMessageCounts();
-
-    // Reload participants for the updated conversations
-    final conversations = state.conversationsOrEmpty;
-    if (conversations.isNotEmpty) {
-      final allParticipantIds = <String>{};
-      for (final conversation in conversations) {
-        allParticipantIds.addAll(
-          conversation.participants.where((participantId) {
-            return participantId != currentUserId;
-          }),
-        );
-      }
-
-      if (allParticipantIds.isNotEmpty) {
-        final batchParticipants = await _repository.getConversationParticipants(
-          allParticipantIds.toList(),
-        );
-        emit(state.copyWith(
-          participantsMap: Map<String, User>.from(batchParticipants),
-        ));
-      }
-    }
-  }
-
-  Future<void> clearErrorState() async {
-    emit(state.copyWith(failOrSendSuccessOpt: const None()));
+    await _chatRepository.markConversationMessagesAsRead(conversationId);
   }
 
   @override
