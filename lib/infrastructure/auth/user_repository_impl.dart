@@ -1,20 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/core/failures.dart';
 import '../../domain/auth/user.dart';
 import '../../domain/auth/user_chat_preferences.dart';
 import '../../domain/auth/user_repository.dart';
 
+@Injectable(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
   final firebase_auth.FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
   UserRepositoryImpl({
-    firebase_auth.FirebaseAuth? auth,
-    FirebaseFirestore? firestore,
-  })  : _auth = auth ?? firebase_auth.FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+    required firebase_auth.FirebaseAuth auth,
+    required FirebaseFirestore firestore,
+  })  : _auth = auth,
+        _firestore = firestore;
 
   @override
   Stream<Either<Failure, User>> watchCurrentUser() {

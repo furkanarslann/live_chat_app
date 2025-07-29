@@ -2,21 +2,23 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
 import 'package:live_chat_app/domain/chat/chat_conversation.dart';
 import 'package:live_chat_app/domain/chat/chat_message.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/domain/chat/chat_repository.dart';
 
+@Injectable(as: ChatRepository)
 class ChatRepositoryImpl implements ChatRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
   ChatRepositoryImpl({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  })  : _firestore = firestore,
+        _auth = auth;
 
   // Collection references
   CollectionReference get _conversationsRef {

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@injectable
 class LanguageCubit extends Cubit<Locale> {
   final SharedPreferences _prefs;
   static const String _languageKey = 'language_code';

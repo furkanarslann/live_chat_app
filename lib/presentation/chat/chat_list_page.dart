@@ -15,7 +15,7 @@ import 'widgets/chat_archived_button.dart';
 import 'widgets/chat_empty_content.dart';
 import 'widgets/chat_conversation_tile.dart';
 import 'create_new_chat_bottom_sheet.dart';
-import '../../setup_dependencies.dart';
+import '../../di/injection.dart';
 
 class ChatListPage extends StatelessWidget {
   const ChatListPage({super.key});

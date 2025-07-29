@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:live_chat_app/domain/chat/chat_message.dart';
 import 'package:live_chat_app/domain/chat/chat_conversation.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
@@ -6,6 +7,7 @@ import 'package:live_chat_app/application/chat/chat_state.dart';
 import 'package:live_chat_app/domain/chat/chat_search_result.dart';
 import 'chat_search_state.dart';
 
+@injectable
 class ChatSearchCubit extends Cubit<ChatSearchState> {
   ChatSearchCubit() : super(const ChatSearchState());
 

@@ -1,19 +1,21 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:injectable/injectable.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/domain/auth/auth_repository.dart';
 
+@Injectable(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   final firebase_auth.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
 
   AuthRepositoryImpl({
-    firebase_auth.FirebaseAuth? firebaseAuth,
-    FirebaseFirestore? firestore,
-  })  : _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+    required firebase_auth.FirebaseAuth firebaseAuth,
+    required FirebaseFirestore firestore,
+  })  : _firebaseAuth = firebaseAuth,
+        _firestore = firestore;
 
   @override
   Future<Either<Failure, User>> register({

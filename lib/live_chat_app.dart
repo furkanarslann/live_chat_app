@@ -9,7 +9,7 @@ import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/splash/splash_page.dart';
-import 'package:live_chat_app/setup_dependencies.dart';
+import 'package:live_chat_app/di/injection.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LiveChatApp extends StatelessWidget {

@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/core/failures.dart';
 import '../../domain/auth/user.dart';
 import '../../domain/auth/user_repository.dart';
 
 part 'user_state.dart';
 
+@injectable
 class UserCubit extends Cubit<UserState> {
   final UserRepository _repository;
   StreamSubscription? _userSubscription;

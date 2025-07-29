@@ -3,11 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/core/failures.dart';
 import '../../domain/auth/user.dart';
 import '../../domain/chat/chat_conversation.dart';
 import 'create_chat_state.dart';
 
+@injectable
 class CreateChatCubit extends Cubit<CreateChatState> {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
