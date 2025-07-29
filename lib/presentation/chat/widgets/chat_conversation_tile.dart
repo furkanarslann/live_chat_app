@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/application/auth/user_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_state.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/domain/chat/chat_conversation.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
-import 'package:live_chat_app/presentation/chat/chat_page.dart';
 import 'chat_message_read_status.dart';
 import 'conversation_tile_shimmer.dart';
 
@@ -82,14 +83,7 @@ class ChatConversationTile extends StatelessWidget {
       child: ChatConversationTileContent(
         conversation: conversation,
         currentUser: currentUser,
-        onTap: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatPage(conversation: conversation),
-            ),
-          );
-        },
+        onTap: () => context.push(AppRouter.chat, extra: conversation),
       ),
     );
   }

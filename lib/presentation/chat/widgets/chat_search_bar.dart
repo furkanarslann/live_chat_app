@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
-import 'package:live_chat_app/presentation/chat/chat_search_page.dart';
-import 'package:live_chat_app/di/injection.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:live_chat_app/application/chat/chat_search_cubit.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
 
 class ChatSearchBar extends StatelessWidget {
   const ChatSearchBar({super.key});
@@ -28,15 +26,7 @@ class ChatSearchBar extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider(
-                  create: (_) => getIt<ChatSearchCubit>(),
-                  child: const ChatSearchPage(),
-                ),
-              ),
-            );
+            context.go(AppRouter.chatSearch);
           },
           borderRadius: BorderRadius.circular(16),
           child: Container(

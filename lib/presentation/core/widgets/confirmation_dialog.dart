@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../app_theme.dart';
 
@@ -100,7 +101,7 @@ class ConfirmationDialog extends StatelessWidget {
                             text: cancelText,
                             isOutlined: true,
                             onPressed: () {
-                              Navigator.pop(context, false);
+                              context.pop(false);
                               onCancelled?.call();
                             },
                           ),
@@ -110,9 +111,11 @@ class ConfirmationDialog extends StatelessWidget {
                           child: _DialogButton(
                             text: actionText,
                             isDestructive: isDestructive,
-                            textColor: isDestructive ? context.colors.background : null,
+                            textColor: isDestructive
+                                ? context.colors.background
+                                : null,
                             onPressed: () {
-                              Navigator.pop(context, true);
+                              context.pop(true);
                               onAction?.call();
                             },
                           ),
@@ -201,4 +204,4 @@ class _DialogButton extends StatelessWidget {
             ),
     );
   }
-} 
+}

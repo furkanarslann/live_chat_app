@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/domain/chat/chat_search_result.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
-import 'package:live_chat_app/presentation/chat/chat_page.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
 
 class ChatSearchResultTile extends StatelessWidget {
   final ChatSearchResult result;
@@ -65,14 +66,7 @@ class ChatSearchResultTile extends StatelessWidget {
               : Icons.message_outlined,
           color: Theme.of(context).colorScheme.primary,
         ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatPage(conversation: result.conversation),
-            ),
-          );
-        },
+        onTap: () => context.push(AppRouter.chat, extra: result.conversation),
       ),
     );
   }

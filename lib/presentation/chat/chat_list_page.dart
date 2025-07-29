@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import '../../application/auth/user_cubit.dart';
 import '../../application/chat/chat_cubit.dart';
 import '../../application/chat/chat_state.dart';
 import '../../domain/auth/user.dart';
 import '../../application/chat/create_chat_cubit.dart';
-import '../../domain/chat/chat_conversation.dart';
-import '../core/app_theme.dart';
 import '../core/extensions/build_context_translate_ext.dart';
+import '../core/router/app_router.dart';
 import 'widgets/chat_search_bar.dart';
 import 'widgets/chat_filter_chips.dart';
 import 'widgets/chat_archived_button.dart';
@@ -133,13 +133,7 @@ class _ChatListContent extends StatelessWidget {
                         child: ChatArchivedButton(
                           count: archivedCount,
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const ArchivedConversationsPage(),
-                              ),
-                            );
+                            context.go(AppRouter.archivedConversations);
                           },
                         ),
                       ),
@@ -160,75 +154,6 @@ class _ChatListContent extends StatelessWidget {
               );
             },
           ),
-        );
-      },
-    );
-  }
-}
-
-class ArchivedConversationsPage extends StatelessWidget {
-  const ArchivedConversationsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<UserCubit, UserState>(
-      builder: (context, userState) {
-        return BlocBuilder<ChatCubit, ChatState>(
-          builder: (context, chatState) {
-            final conversations = chatState.failureOrConversationsOpt.fold(
-              () => <ChatConversation>[],
-              (failureOrConversations) => failureOrConversations.fold(
-                (failure) => <ChatConversation>[],
-                (conversations) => conversations,
-              ),
-            );
-
-            final currentUser = userState.user;
-            if (currentUser == null) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            final archivedConversations = conversations
-                .where((conversation) =>
-                    currentUser.chatPreferences.isArchived(conversation.id))
-                .toList();
-
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(context.tr.archived),
-              ),
-              body: archivedConversations.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.archive_outlined,
-                            size: 48,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: Spacing.md),
-                          Text(
-                            context.tr.noConversations,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: archivedConversations.length,
-                      itemBuilder: (context, index) {
-                        final conversation = archivedConversations[index];
-                        return ChatConversationTile(
-                          conversation: conversation,
-                          currentUser: currentUser,
-                        );
-                      },
-                    ),
-            );
-          },
         );
       },
     );

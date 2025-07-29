@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
 import 'package:live_chat_app/domain/core/failures.dart';
@@ -116,10 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
             () {
               // If no failure and authenticated, navigate to home
               if (state.status == AuthStatus.authenticated) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRouter.home,
-                  (route) => false,
-                );
+                context.go(AppRouter.home);
               }
             },
             (failure) {
@@ -280,9 +278,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pushReplacementNamed(
-                              AppRouter.login,
-                            );
+                            context.go(AppRouter.login);
                           },
                           child: Text(context.tr.signIn),
                         ),

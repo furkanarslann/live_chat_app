@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/user_cubit.dart';
 import 'package:live_chat_app/application/language/language_cubit.dart';
@@ -8,9 +9,8 @@ import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_dialog_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_theme_ext.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'package:live_chat_app/presentation/core/widgets/user_avatar.dart';
-import 'package:live_chat_app/presentation/settings/language_settings_page.dart';
-import 'package:live_chat_app/presentation/settings/theme_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -144,12 +144,7 @@ class _AppSettingsSection extends StatelessWidget {
               title: context.tr.language,
               subtitle: context.read<LanguageCubit>().getCurrentLanguageName(),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LanguageSettingsPage(),
-                  ),
-                );
+                context.go(AppRouter.languageSettings);
               },
             );
           },
@@ -184,12 +179,7 @@ class _ThemeSettingsItem extends StatelessWidget {
           title: context.tr.theme,
           subtitle: _getThemeModeName(context, state),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ThemeSettingsPage(),
-              ),
-            );
+            context.go(AppRouter.themeSettings);
           },
         );
       },

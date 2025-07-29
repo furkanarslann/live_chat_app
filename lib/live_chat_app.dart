@@ -8,7 +8,6 @@ import 'package:live_chat_app/application/language/language_cubit.dart';
 import 'package:live_chat_app/application/theme/theme_cubit.dart';
 import 'package:live_chat_app/presentation/core/app_theme.dart';
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
-import 'package:live_chat_app/presentation/splash/splash_page.dart';
 import 'package:live_chat_app/di/injection.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -30,7 +29,7 @@ class LiveChatApp extends StatelessWidget {
           final themeMode = context.watch<ThemeCubit>().state;
           final locale = context.watch<LanguageCubit>().state;
 
-          return MaterialApp(
+          return MaterialApp.router(
             title: 'Live Chat',
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
@@ -46,8 +45,7 @@ class LiveChatApp extends StatelessWidget {
               Locale('en'), // English
               Locale('de'), // German
             ],
-            onGenerateRoute: AppRouter.onGenerateRoute,
-            home: const SplashPage(),
+            routerConfig: AppRouter.router,
           );
         },
       ),

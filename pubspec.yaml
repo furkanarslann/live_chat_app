@@ -31,6 +31,9 @@ dependencies:
   
   # UI effects
   shimmer: ^3.0.0
+  
+  # Routing
+  go_router: ^13.2.0
 
 dev_dependencies:
   flutter_test:

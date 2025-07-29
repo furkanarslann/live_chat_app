@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/application/chat/create_chat_cubit.dart';
 import 'package:live_chat_app/application/chat/create_chat_state.dart';
 import 'package:live_chat_app/domain/auth/user.dart';
 import 'package:live_chat_app/presentation/core/widgets/scrollable_bottom_sheet.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_translate_ext.dart';
-import 'package:live_chat_app/presentation/chat/chat_page.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import 'widgets/chat_user_tile.dart';
 
 class CreateNewChatBottomSheet extends StatefulWidget {
@@ -51,14 +52,8 @@ class _CreateNewChatBottomSheetState extends State<CreateNewChatBottomSheet> {
         );
       },
       (conversation) {
-        Navigator.pop(context);
         // Navigate to chat page - conversation will be created when first message is sent
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatPage(conversation: conversation),
-          ),
-        );
+        context.replace(AppRouter.chat, extra: conversation);
       },
     );
   }

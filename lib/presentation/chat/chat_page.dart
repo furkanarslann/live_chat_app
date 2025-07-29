@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/presentation/core/extensions/build_context_auth_ext.dart';
+import 'package:live_chat_app/presentation/core/router/app_router.dart';
 import '../../application/chat/chat_cubit.dart';
 import '../../application/chat/chat_state.dart';
 import '../../domain/chat/chat_conversation.dart';
 import '../core/extensions/build_context_translate_ext.dart';
 import '../core/widgets/user_avatar.dart';
 import '../core/widgets/glassy_snackbar.dart';
-import 'chat_participant_profile_page.dart';
 import 'widgets/chat_empty_messages_content.dart';
 import 'widgets/chat_message_bubble.dart';
 import 'widgets/chat_message_input.dart';
@@ -69,13 +70,9 @@ class _ChatPageState extends State<ChatPage> {
               builder: (context) {
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatParticipantProfilePage(
-                          participant: participant,
-                        ),
-                      ),
+                    context.push(
+                      AppRouter.chatParticipantProfile,
+                      extra: participant,
                     );
                   },
                   child: Row(

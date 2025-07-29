@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/application/chat/chat_search_cubit.dart';
 import 'package:live_chat_app/application/chat/chat_search_state.dart';
 import 'package:live_chat_app/application/chat/chat_cubit.dart';
@@ -14,7 +15,12 @@ import 'widgets/chat_search_no_results_state.dart';
 import 'widgets/chat_search_result_tile.dart';
 
 class ChatSearchPage extends StatefulWidget {
-  const ChatSearchPage({super.key});
+  final String? initialQuery;
+
+  const ChatSearchPage({
+    super.key,
+    this.initialQuery,
+  });
 
   @override
   State<ChatSearchPage> createState() => _ChatSearchPageState();
@@ -28,6 +34,12 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+
+    // Set initial query if provided
+    if (widget.initialQuery != null) {
+      _searchController.text = widget.initialQuery!;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -71,7 +83,7 @@ class _ChatSearchPageState extends State<ChatSearchPage> {
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                 ),
               ),
               body: Column(

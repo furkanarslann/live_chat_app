@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:live_chat_app/application/auth/auth_cubit.dart';
 import 'package:live_chat_app/application/auth/auth_state.dart';
 import 'package:live_chat_app/presentation/core/router/app_router.dart';
@@ -70,16 +71,10 @@ class _SplashPageState extends State<SplashPage>
       listener: (context, state) {
         switch (state.status) {
           case AuthStatus.authenticated:
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.home,
-              (route) => false,
-            );
+            context.go(AppRouter.home);
             break;
           case AuthStatus.unauthenticated:
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRouter.login,
-              (route) => false,
-            );
+            context.go(AppRouter.login);
             break;
           default:
             break;
