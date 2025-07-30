@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:live_chat_app/application/auth/auth_cubit.dart';
+import 'package:live_chat_app/application/auth/auth_state.dart';
+import 'package:live_chat_app/application/chat/chat_search_cubit.dart';
+import 'package:live_chat_app/di/injection.dart';
+import 'package:live_chat_app/domain/chat/chat_conversation.dart';
 import 'package:live_chat_app/presentation/auth/login_page.dart';
 import 'package:live_chat_app/presentation/auth/register_page.dart';
+import 'package:live_chat_app/presentation/chat/chat_page.dart';
 import 'package:live_chat_app/presentation/home/home_page.dart';
 import 'package:live_chat_app/presentation/chat/chat_list_page.dart';
 import 'package:live_chat_app/presentation/chat/chat_search_page.dart';
@@ -31,30 +38,50 @@ class AppRouter {
   static GoRouter get router {
     return GoRouter(
       initialLocation: splash,
+      redirect: (context, state) {
+        // Get the auth cubit from the context
+        final authCubit = context.read<AuthCubit>();
+        final authState = authCubit.state;
+        // If we're on splash and auth is initialized, redirect based on auth status
+        if (state.matchedLocation == splash &&
+            authState.status != AuthStatus.initial) {
+          switch (authState.status) {
+            case AuthStatus.authenticated:
+              return home;
+            case AuthStatus.unauthenticated:
+            case AuthStatus.failure:
+              return login;
+            case AuthStatus.initial:
+              // Stay on splash while auth is initializing
+              return null;
+          }
+        }
+        return null;
+      },
       routes: [
         // Splash page
         GoRoute(
           path: splash,
-          name: splash.name,
+          name: 'splash',
           builder: (context, state) => const SplashPage(),
         ),
 
         // Auth routes
         GoRoute(
           path: login,
-          name: login.name,
+          name: 'login',
           builder: (context, state) => const LoginPage(),
         ),
         GoRoute(
           path: register,
-          name: register.name,
+          name: 'register',
           builder: (context, state) => const RegisterPage(),
         ),
 
         // Main app routes
         GoRoute(
           path: home,
-          name: home.name,
+          name: 'home',
           builder: (context, state) => const HomePage(),
         ),
 
@@ -72,7 +99,10 @@ class AppRouter {
         GoRoute(
           path: chatSearch,
           name: chatSearch.name,
-          builder: (context, state) => const ChatSearchPage(),
+          builder: (_, __) => BlocProvider(
+            create: (_) => getIt<ChatSearchCubit>(),
+            child: const ChatSearchPage(),
+          ),
         ),
 
         // Settings routes
@@ -97,6 +127,21 @@ class AppRouter {
           builder: (context, state) {
             final participant = state.extra as User;
             return ChatParticipantProfilePage(participant: participant);
+          },
+        ),
+        GoRoute(
+          path: chat,
+          name: chat.name,
+          pageBuilder: (context, state) {
+            final conversation = state.extra as ChatConversation;
+            return CustomTransitionPage(
+              child: ChatPage(conversation: conversation),
+              transitionDuration: const Duration(milliseconds: 300),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            );
           },
         ),
       ],

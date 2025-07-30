@@ -133,7 +133,7 @@ class _ChatListContent extends StatelessWidget {
                         child: ChatArchivedButton(
                           count: archivedCount,
                           onTap: () {
-                            context.go(AppRouter.archivedConversations);
+                            context.push(AppRouter.archivedConversations);
                           },
                         ),
                       ),

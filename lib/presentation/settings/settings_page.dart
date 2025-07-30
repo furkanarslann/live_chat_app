@@ -144,7 +144,7 @@ class _AppSettingsSection extends StatelessWidget {
               title: context.tr.language,
               subtitle: context.read<LanguageCubit>().getCurrentLanguageName(),
               onTap: () {
-                context.go(AppRouter.languageSettings);
+                context.push(AppRouter.languageSettings);
               },
             );
           },
@@ -179,7 +179,7 @@ class _ThemeSettingsItem extends StatelessWidget {
           title: context.tr.theme,
           subtitle: _getThemeModeName(context, state),
           onTap: () {
-            context.go(AppRouter.themeSettings);
+            context.push(AppRouter.themeSettings);
           },
         );
       },

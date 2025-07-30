@@ -26,7 +26,7 @@ class ChatSearchBar extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            context.go(AppRouter.chatSearch);
+            context.push(AppRouter.chatSearch);
           },
           borderRadius: BorderRadius.circular(16),
           child: Container(
