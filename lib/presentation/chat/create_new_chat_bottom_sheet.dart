@@ -52,8 +52,9 @@ class _CreateNewChatBottomSheetState extends State<CreateNewChatBottomSheet> {
         );
       },
       (conversation) {
+        context.pop(); // Close the bottom sheet
         // Navigate to chat page - conversation will be created when first message is sent
-        context.replace(AppRouter.chat, extra: conversation);
+        context.push(AppRouter.chat, extra: conversation);
       },
     );
   }
