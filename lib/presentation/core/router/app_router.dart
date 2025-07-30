@@ -136,7 +136,7 @@ class AppRouter {
             final conversation = state.extra as ChatConversation;
             return CustomTransitionPage(
               child: ChatPage(conversation: conversation),
-              transitionDuration: const Duration(milliseconds: 300),
+              transitionDuration: const Duration(milliseconds: 200),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
